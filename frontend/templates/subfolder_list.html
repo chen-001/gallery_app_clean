@@ -1,0 +1,1025 @@
+{% extends "base.html" %}
+
+{% block title %}{{ folder_name }} - 子文件夹列表{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/folder_list.css') }}">
+<style>
+/* Markdown 样式支持 */
+.folder-description {
+    margin-top: 15px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #3182ce;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #2d3748;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.folder-description h1,
+.folder-description h2,
+.folder-description h3,
+.folder-description h4,
+.folder-description h5,
+.folder-description h6 {
+    color: #2d3748;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.folder-description h1 {
+    font-size: 1.5em;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+.folder-description h2 {
+    font-size: 1.3em;
+    color: #4a5568;
+}
+
+.folder-description h3 {
+    font-size: 1.1em;
+    color: #4a5568;
+}
+
+.folder-description p {
+    margin-bottom: 14px;
+}
+
+.folder-description ul,
+.folder-description ol {
+    margin-left: 24px;
+    margin-bottom: 14px;
+    padding-left: 8px;
+}
+
+.folder-description li {
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+
+.folder-description code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    color: #e53e3e;
+    border: 1px solid #e2e8f0;
+}
+
+.folder-description pre,
+.folder-description .code-block {
+    background: #f8f8f8;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    border-left: 4px solid #007bff;
+    margin: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.folder-description pre code,
+.folder-description .code-block code {
+    background: transparent;
+    padding: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.folder-description blockquote {
+    border-left: 4px solid #ff69b4;
+    margin: 10px 0;
+    padding-left: 15px;
+    color: #666;
+    font-style: italic;
+}
+
+.folder-description a {
+    color: #e91e63;
+    text-decoration: none;
+}
+
+.folder-description a:hover {
+    text-decoration: underline;
+}
+
+.folder-description img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+}
+
+/* 模态框样式 */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white;
+    background: linear-gradient(135deg, #fff5f8 0%, #ffe8f0 100%);
+    border-radius: 8px;
+    width: 98%;
+    max-width: 1400px;
+    max-height: 95vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(255, 182, 193, 0.4);
+    border: 1px solid rgba(255, 182, 193, 0.3);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #e91e63;
+}
+
+.modal-close {
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal-close:hover {
+    color: #e91e63;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255, 182, 193, 0.3);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
+    border-radius: 0 0 8px 8px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ffb6c1;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff0f5;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #e91e63;
+    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.25);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70vh;
+    font-size: 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    line-height: 1.6;
+}
+
+/* 特殊的markdown编辑器样式 */
+#folderDescription {
+    background: #fafafa;
+    border: 2px solid #e1e5e9;
+    padding: 16px 20px;
+    tab-size: 2;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#folderDescription:focus {
+    background: #ffffff;
+    border-color: #e91e63;
+    box-shadow: 0 0 0 3px rgba(233,30,99,0.15);
+}
+
+/* 键盘按键样式 */
+kbd {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #fff;
+}
+
+/* 操作按钮样式 */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 0 15px;
+}
+
+.action-buttons .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-buttons .btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.action-buttons .btn-info:hover {
+    background: #138496;
+}
+
+.action-buttons .btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.action-buttons .btn-success:hover {
+    background: #1e7e34;
+}
+
+/* 有描述图片显示区域 */
+.described-images-section {
+    margin: 20px 0;
+    padding: 0;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 182, 193, 0.3);
+    display: none;
+    width: 100%;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #e91e63 0%, #ff69b4 100%);
+    color: white;
+    margin: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.section-header .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.described-images-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 25px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.described-image-card {
+    max-width: 100%;
+    width: 100%;
+    background: linear-gradient(135deg, #fff5f8 0%, #ffe8f0 100%);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 182, 193, 0.2);
+    cursor: pointer;
+}
+
+.described-image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.4);
+}
+
+.described-image-preview {
+    width: 100%;
+    height: 800px;
+    background: linear-gradient(135deg, #fef8fa 0%, #fdeef2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.described-image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.described-image-info {
+    padding: 15px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.described-image-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    word-break: break-all;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.described-image-folder {
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.described-image-folder::before {
+    content: "📁";
+    font-size: 10px;
+}
+
+.described-image-return {
+    color: #28a745;
+    font-weight: 600;
+    background: rgba(40, 167, 69, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.described-image-description {
+    color: #555;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255, 182, 193, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #ff69b4;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .described-images-grid {
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .described-image-preview {
+        height: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .described-images-grid {
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .described-image-preview {
+        height: 400px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="folder-list-container">
+    <div class="folder-header">
+        <div class="breadcrumb">
+            <a href="{{ url_for('gallery.folder_list') }}">
+                <i class="fas fa-home"></i> 首页
+            </a>
+            <span class="separator">/</span>
+            <span class="current">{{ folder_name }}</span>
+        </div>
+        
+        <h1><i class="fas fa-folder-open"></i> {{ folder_name }}
+            <button class="btn btn-info btn-sm btn-edit-folder" 
+                    data-folder="{{ folder_name }}"
+                    data-description="{{ (folder_info.description or '') | e }}"
+                    style="margin-left: 10px; font-size: 14px;">
+                <i class="fas fa-edit"></i> 编辑信息
+            </button>
+        </h1>
+        
+        {% if folder_info and folder_info.description %}
+        <div class="folder-description" id="folderDescriptionDisplay" data-markdown="{{ folder_info.description | e }}">
+            {{ folder_info.description }}
+        </div>
+        {% else %}
+        <p class="subtitle" style="color: #999; font-style: italic;">暂无文件夹描述</p>
+        {% endif %}
+        
+        <p class="subtitle">共找到 {{ subfolders|length }} 个子文件夹</p>
+        
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索子文件夹...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-sm" id="goToGallery">
+                    <i class="fas fa-images"></i> 查看图片画廊
+                </button>
+                <button class="btn btn-info btn-sm" id="showDescribedImages">
+                    <i class="fas fa-comment-alt"></i> 查看有描述的图片
+                </button>
+                <button class="btn btn-success btn-sm" id="sortByReturn">
+                    <i class="fas fa-chart-line"></i> 按收益率排序
+                </button>
+            </div>
+            <div class="view-options">
+                <button class="view-btn active" data-view="grid">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="folder-filters">
+        <div class="filter-group">
+            <label>排序方式:</label>
+            <select id="sortSelect" class="filter-select">
+                <option value="name">名称</option>
+                <option value="date">日期</option>
+                <option value="size">大小</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>排序顺序:</label>
+            <select id="orderSelect" class="filter-select">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+        </div>
+        <div class="filter-stats">
+            <span id="folderCount">{{ subfolders|length }}</span> 个子文件夹
+        </div>
+    </div>
+    
+    <!-- 有描述图片显示区域 -->
+    <div class="described-images-section" id="describedImagesSection">
+        <div class="section-header">
+            <h3><i class="fas fa-comment-alt"></i> 有描述的图片</h3>
+            <button class="btn btn-secondary btn-sm" id="hideDescribedImages">
+                <i class="fas fa-times"></i> 隐藏
+            </button>
+        </div>
+        <div class="gallery-grid" id="describedImagesGrid">
+            <!-- 动态加载内容 -->
+        </div>
+        <div class="loading-state" id="describedImagesLoading" style="display: none;">
+            <div class="loading"></div>
+            <p>加载中...</p>
+        </div>
+    </div>
+    
+    {% if subfolders %}
+    <div class="folder-grid" id="folderGrid">
+        {% for subfolder in subfolders %}
+        <div class="folder-card" data-name="{{ subfolder.name|lower }}" data-date="{{ subfolder.date }}" data-size="{{ subfolder.size }}">
+            <div class="folder-icon">
+                <i class="fas fa-folder"></i>
+                {% if subfolder.image_count %}
+                <span class="image-count">{{ subfolder.image_count }}</span>
+                {% endif %}
+            </div>
+            <div class="folder-info">
+                <h3 class="folder-name">{{ subfolder.name }}</h3>
+                <p class="folder-meta">
+                    {% if subfolder.image_count %}
+                    <span><i class="fas fa-images"></i> {{ subfolder.image_count }} 张</span>
+                    {% endif %}
+                    {% if subfolder.size %}
+                    <span><i class="fas fa-hdd"></i> {{ subfolder.size | filesizeformat }}</span>
+                    {% endif %}
+                    {% if subfolder.date %}
+                    <span><i class="fas fa-calendar"></i> {{ subfolder.date | date }}</span>
+                    {% endif %}
+                </p>
+                {% if subfolder.description %}
+                <p class="folder-description" style="display: none;">{{ subfolder.description }}</p>
+                {% endif %}
+            </div>
+            <div class="folder-actions">
+                {% if subfolder.has_images %}
+                <a href="{{ url_for('gallery.gallery_page', folder_name=folder_name + '/' + subfolder.name) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-images"></i> 查看图片
+                </a>
+                {% endif %}
+                {% if subfolder.has_subfolders %}
+                <a href="{{ url_for('gallery.subfolder_list', folder_name=folder_name + '/' + subfolder.name) }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-folder"></i> 子文件夹
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <h3>此文件夹为空</h3>
+        <p>{{ folder_name }} 中没有子文件夹</p>
+        <a href="{{ url_for('gallery.folder_list') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>未找到匹配的子文件夹</h3>
+        <p>尝试修改搜索条件或清空搜索框</p>
+    </div>
+    
+    <div class="loading-state" id="loadingState" style="display: none;">
+        <div class="loading"></div>
+        <p>加载中...</p>
+    </div>
+</div>
+
+<!-- 文件夹信息编辑模态框 -->
+<div class="modal" id="folderModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>编辑文件夹信息</h3>
+            <span class="modal-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="folderName">文件夹名称:</label>
+                <input type="text" id="folderName" readonly>
+            </div>
+            <div class="form-group">
+                <label for="folderDescription">文件夹描述:</label>
+                <div style="margin-bottom: 8px; font-size: 12px; color: #666;">
+                    支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进
+                </div>
+                <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)"></textarea>
+            </div>
+            <div class="form-group">
+                <label>统计信息:</label>
+                <div id="folderStats" style="padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <p><strong>子文件夹数量:</strong> {{ subfolders|length }} 个</p>
+                    <p><strong>最后修改:</strong> {{ folder_info.date | date if folder_info.date else '未知' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelFolder">取消</button>
+            <button class="btn btn-primary" id="saveFolder">保存</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/folder_list.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" onerror="console.error('Failed to load marked.js')"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js" onerror="console.error('Failed to load prism-core.js')"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" onerror="console.error('Failed to load prism-autoloader.js')"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+<script>
+// 确保marked库加载完成后再执行渲染
+let markedLoadAttempts = 0;
+function waitForMarked(callback) {
+    if (typeof marked !== 'undefined') {
+        console.log('marked.js loaded successfully');
+        callback();
+    } else if (markedLoadAttempts < 50) { // 5秒超时
+        markedLoadAttempts++;
+        setTimeout(() => waitForMarked(callback), 100);
+    } else {
+        console.error('Failed to load marked.js library, using fallback rendering');
+        // 后备渲染方法：简单的换行处理
+        const folderDescription = document.getElementById('folderDescriptionDisplay');
+        if (folderDescription) {
+            const encodedMarkdown = folderDescription.getAttribute('data-markdown');
+            const tempElement = document.createElement('textarea');
+            tempElement.innerHTML = encodedMarkdown;
+            const markdownText = tempElement.value;
+            folderDescription.innerHTML = markdownText.replace(/\n/g, '<br>');
+        }
+    }
+}
+</script>
+<script>
+// Markdown 渲染和编辑功能
+document.addEventListener('DOMContentLoaded', function() {
+    // Markdown 渲染功能
+    function renderMarkdown() {
+        console.log('renderMarkdown called');
+        const folderDescription = document.getElementById('folderDescriptionDisplay');
+        console.log('folderDescription element:', folderDescription);
+        
+        if (folderDescription) {
+            const encodedMarkdown = folderDescription.getAttribute('data-markdown');
+            // 解码HTML实体
+            const tempElement = document.createElement('textarea');
+            tempElement.innerHTML = encodedMarkdown;
+            const markdownText = tempElement.value;
+            console.log('Original markdown text:', markdownText);
+            console.log('Encoded markdown text:', encodedMarkdown);
+            
+            if (markdownText && markdownText.trim()) {
+                // 等待marked库加载
+                waitForMarked(() => {
+                    try {
+                        console.log('marked library loaded, rendering...');
+                        
+                        // 配置 marked 选项
+                        const markedOptions = {
+                            breaks: true,
+                            gfm: true,
+                            sanitize: false
+                        };
+                        
+                        // 检查marked版本，新版本使用不同的配置方式
+                        if (marked.setOptions) {
+                            marked.setOptions(markedOptions);
+                        }
+                        
+                        // 创建自定义渲染器
+                        let renderer;
+                        try {
+                            renderer = new marked.Renderer();
+                            
+                            // 自定义代码块渲染
+                            renderer.code = function(code, lang) {
+                                const className = lang ? `language-${lang}` : '';
+                                return `<pre class="code-block"><code class="${className}">${code}</code></pre>`;
+                            };
+                            
+                            // 自定义图片渲染
+                            renderer.image = function(href, title, text) {
+                                console.log('Processing image:', href, 'in folder:', '{{ folder_name }}');
+                                
+                                // 如果是相对路径，转换为绝对路径
+                                if (href && !href.startsWith('http') && !href.startsWith('/')) {
+                                    // 获取当前文件夹路径，确保正确编码
+                                    const currentFolder = '{{ folder_name }}';
+                                    const encodedFolder = encodeURIComponent(currentFolder);
+                                    const encodedHref = encodeURIComponent(href);
+                                    href = `/gallery/serve/${encodedFolder}/${encodedHref}`;
+                                    console.log('Converted to:', href);
+                                }
+                                
+                                const titleAttr = title ? ` title="${title}"` : '';
+                                return `<img src="${href}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
+                            };
+                        } catch (e) {
+                            console.warn('Failed to create custom renderer, using default:', e);
+                            renderer = undefined;
+                        }
+                        
+                        // 渲染 markdown 并替换内容
+                        let renderedHTML;
+                        try {
+                            const renderOptions = renderer ? { renderer: renderer } : {};
+                            if (marked.parse) {
+                                renderedHTML = marked.parse(markdownText, renderOptions);
+                            } else if (typeof marked === 'function') {
+                                renderedHTML = marked(markdownText, renderOptions);
+                            } else {
+                                throw new Error('marked function not available');
+                            }
+                        } catch (parseError) {
+                            console.error('Markdown parsing failed:', parseError);
+                            // 简单后备方案
+                            renderedHTML = markdownText
+                                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                                .replace(/\*(.*)\*/gim, '<em>$1</em>')
+                                .replace(/```(\w+)?\n([\s\S]*?)```/gim, '<pre class="code-block"><code>$2</code></pre>')
+                                .replace(/`([^`]+)`/gim, '<code>$1</code>')
+                                .replace(/\n/g, '<br>');
+                        }
+                        
+                        console.log('Rendered HTML:', renderedHTML);
+                        folderDescription.innerHTML = renderedHTML;
+                        
+                        // 应用语法高亮
+                        if (typeof Prism !== 'undefined') {
+                            setTimeout(() => {
+                                Prism.highlightAllUnder(folderDescription);
+                                console.log('Syntax highlighting applied');
+                            }, 100);
+                        }
+                        
+                        console.log('Markdown rendered successfully');
+                    } catch (error) {
+                        console.error('Markdown rendering error:', error);
+                        // 如果markdown渲染失败，至少显示原始内容并换行
+                        folderDescription.innerHTML = markdownText.replace(/\n/g, '<br>');
+                    }
+                });
+            }
+        }
+    }
+    
+    // 文件夹编辑功能
+    const folderModal = document.getElementById('folderModal');
+    const folderNameInput = document.getElementById('folderName');
+    const folderDescriptionTextarea = document.getElementById('folderDescription');
+    const saveFolderBtn = document.getElementById('saveFolder');
+    const cancelFolderBtn = document.getElementById('cancelFolder');
+    const folderCloseBtn = folderModal.querySelector('.modal-close');
+    
+    let currentFolder = '';
+    
+    // 打开文件夹编辑模态框
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit-folder')) {
+            const btn = e.target.closest('.btn-edit-folder');
+            currentFolder = btn.dataset.folder;
+            const currentDescription = btn.dataset.description;
+            
+            folderNameInput.value = currentFolder;
+            // 解码HTML编码的字符
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = currentDescription;
+            folderDescriptionTextarea.value = textarea.value;
+            folderModal.style.display = 'flex';
+        }
+    });
+    
+    // 关闭模态框
+    function closeFolderModal() {
+        folderModal.style.display = 'none';
+        currentFolder = '';
+    }
+    
+    folderCloseBtn.addEventListener('click', closeFolderModal);
+    cancelFolderBtn.addEventListener('click', closeFolderModal);
+    
+    // 点击模态框外部关闭
+    folderModal.addEventListener('click', function(e) {
+        if (e.target === folderModal) {
+            closeFolderModal();
+        }
+    });
+    
+    // 保存文件夹描述
+    function saveFolderDescription() {
+        if (!currentFolder) {
+            alert('参数错误');
+            return;
+        }
+        
+        const description = folderDescriptionTextarea.value.trim();
+        
+        // 发送保存请求
+        fetch(`/gallery/api/folder-description/${currentFolder}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('文件夹描述已保存');
+                closeFolderModal();
+                // 刷新页面显示新的描述
+                location.reload();
+            } else {
+                alert('保存失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('保存时发生错误');
+        });
+    }
+    
+    saveFolderBtn.addEventListener('click', saveFolderDescription);
+    
+    // 添加键盘快捷键支持 (Ctrl+S 保存)
+    folderDescriptionTextarea.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveFolderDescription();
+        }
+        // Tab键插入两个空格而不是制表符
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 2;
+        }
+    });
+    
+    // 页面加载完成后渲染 markdown
+    renderMarkdown();
+    
+    // 有描述图片功能
+    const showDescribedImagesBtn = document.getElementById('showDescribedImages');
+    const hideDescribedImagesBtn = document.getElementById('hideDescribedImages');
+    const sortByReturnBtn = document.getElementById('sortByReturn');
+    const describedImagesSection = document.getElementById('describedImagesSection');
+    const describedImagesGrid = document.getElementById('describedImagesGrid');
+    const describedImagesLoading = document.getElementById('describedImagesLoading');
+    
+    let describedImagesData = [];
+    
+    // 显示有描述的图片
+    showDescribedImagesBtn.addEventListener('click', function() {
+        describedImagesSection.style.display = 'block';
+        loadDescribedImages();
+    });
+    
+    // 隐藏有描述的图片
+    hideDescribedImagesBtn.addEventListener('click', function() {
+        describedImagesSection.style.display = 'none';
+    });
+    
+    // 按收益率排序
+    sortByReturnBtn.addEventListener('click', function() {
+        if (describedImagesData.length > 0) {
+            sortImagesByReturn();
+        } else {
+            alert('请先查看有描述的图片');
+        }
+    });
+    
+    // 查看图片画廊按钮
+    const goToGalleryBtn = document.getElementById('goToGallery');
+    goToGalleryBtn.addEventListener('click', function() {
+        const currentFolder = '{{ folder_name }}';
+        window.location.href = `/gallery/images/${currentFolder}`;
+    });
+    
+    // 加载有描述的图片
+    function loadDescribedImages() {
+        describedImagesLoading.style.display = 'block';
+        describedImagesGrid.innerHTML = '';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        // 获取所有子文件夹的有描述图片
+        fetch(`/gallery/api/described-images/${currentFolder}`)
+            .then(response => response.json())
+            .then(data => {
+                describedImagesLoading.style.display = 'none';
+                if (data.success) {
+                    describedImagesData = data.data;
+                    displayDescribedImages(describedImagesData);
+                } else {
+                    describedImagesGrid.innerHTML = '<p>加载失败: ' + data.message + '</p>';
+                }
+            })
+            .catch(error => {
+                describedImagesLoading.style.display = 'none';
+                console.error('Error:', error);
+                describedImagesGrid.innerHTML = '<p>加载时发生错误</p>';
+            });
+    }
+    
+    // 显示有描述的图片
+    function displayDescribedImages(images) {
+        if (images.length === 0) {
+            describedImagesGrid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fas fa-images" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i><h3>该文件夹下没有有描述的图片</h3><p>暂时没有找到任何包含描述信息的图片</p></div>';
+            return;
+        }
+        
+        describedImagesGrid.innerHTML = '';
+        
+        images.forEach(image => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+            
+            // 处理描述文本，确保安全显示
+            let description = image.description || '暂无描述';
+            
+            // 清理可能的多余字符
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')  // 移除可能的多余字符
+                .replace(/^\s+|\s+$/g, '')  // 去除首尾空白
+                .replace(/\n/g, '<br>');  // 换行转HTML
+            
+            card.innerHTML = `
+                <div class="image-thumbnail">
+                    <object data="/gallery/serve/${image.relative_path}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${image.relative_path}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                </div>
+                <div class="image-info">
+                    <div class="image-name" title="${image.name}">${image.name}</div>
+                    <div class="image-meta">
+                        <span><i class="fas fa-folder"></i> ${image.folder || '主文件夹'}</span>
+                    </div>
+                    ${neuRetDisplay}
+                    <div class="image-description">
+                        <i class="fas fa-comment"></i> ${description}
+                    </div>
+                </div>
+            `;
+            
+            // 点击查看原图
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+            });
+            
+            describedImagesGrid.appendChild(card);
+        });
+        
+        // 添加加载完成提示
+        console.log(`显示了 ${images.length} 张有描述的图片`);
+    }
+    
+    // 按收益率排序
+    function sortImagesByReturn() {
+        const sortedImages = [...describedImagesData].sort((a, b) => {
+            const returnA = a.neu_ret || 0;
+            const returnB = b.neu_ret || 0;
+            return returnB - returnA; // 从高到低排序
+        });
+        
+        displayDescribedImages(sortedImages);
+    }
+});
+</script>
+{% endblock %}

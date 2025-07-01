@@ -1,0 +1,34 @@
+{
+    "auth_methods": ["header", "manual"],
+    "manual_auth": {
+        "enabled": true,
+        "auto_login": true
+    },
+    "header_auth": {
+        "enabled": true,
+        "headers": ["X-Remote-User", "X-Forwarded-User"]
+    },
+    "ip_auth": {
+        "enabled": false,
+        "ip_users": {
+            "127.0.0.1": "admin",
+            "192.168.1.100": "user"
+        }
+    },
+    "users": {
+        "admin": "admin123"
+    },
+    "show_allowed_users": true,
+    "session_timeout": 3600,
+    "security": {
+        "max_login_attempts": 5,
+        "lockout_duration": 300,
+        "require_https": false
+    },
+    "features": {
+        "file_upload": true,
+        "file_delete": true,
+        "backup_query": true,
+        "progress_monitor": true
+    }
+}

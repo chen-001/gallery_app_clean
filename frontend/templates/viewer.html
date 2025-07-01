@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file_info.name }} - 文件查看器{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 文件查看器样式 */
+.viewer-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background: transparent;
+    min-height: calc(100vh - 60px);
+}
+
+.viewer-header {
+    background: var(--card-gradient);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.viewer-header h1 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 24px;
+    word-break: break-all;
+}
+
+.file-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.file-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.viewer-content {
+    background: var(--card-gradient);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.svg-viewer {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.image-viewer {
+    max-width: 100%;
+    max-height: 80vh;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.file-not-supported {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+}
+
+.file-not-supported i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #ad1457;
+}
+
+.btn-secondary {
+    background: var(--dark-gray);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1e7e34;
+}
+
+@media (max-width: 768px) {
+    .viewer-container {
+        padding: 10px;
+    }
+    
+    .file-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .file-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viewer-container">
+    <div class="viewer-header">
+        <h1><i class="fas fa-file"></i> {{ file_info.name }}</h1>
+        
+        <div class="file-meta">
+            {% if file_info.size %}
+            <span><i class="fas fa-hdd"></i> {{ file_info.size | filesizeformat }}</span>
+            {% endif %}
+            {% if file_info.width and file_info.height %}
+            <span><i class="fas fa-expand-arrows-alt"></i> {{ file_info.width }}×{{ file_info.height }}</span>
+            {% endif %}
+            {% if file_info.date %}
+            <span><i class="fas fa-calendar"></i> {{ file_info.date | date }}</span>
+            {% endif %}
+            {% if file_info.extension %}
+            <span><i class="fas fa-tag"></i> {{ file_info.extension.upper() }} 文件</span>
+            {% endif %}
+        </div>
+        
+        <div class="file-actions">
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> 返回
+            </a>
+            <a href="{{ url_for('gallery.serve_file', file_path=file_path) }}" 
+               class="btn btn-success" download>
+                <i class="fas fa-download"></i> 下载文件
+            </a>
+            <a href="{{ url_for('gallery.serve_file', file_path=file_path) }}" 
+               class="btn btn-primary" target="_blank">
+                <i class="fas fa-external-link-alt"></i> 在新窗口打开
+            </a>
+        </div>
+    </div>
+    
+    <div class="viewer-content">
+        {% if file_info.extension == '.svg' %}
+        <!-- SVG文件使用object标签显示 -->
+        <object data="{{ url_for('gallery.serve_file', file_path=file_path) }}" 
+                type="image/svg+xml" 
+                class="svg-viewer">
+            <p>您的浏览器不支持SVG文件预览。</p>
+        </object>
+        {% elif file_info.extension in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'] %}
+        <!-- 其他图片文件使用img标签显示 -->
+        <img src="{{ url_for('gallery.serve_file', file_path=file_path) }}" 
+             alt="{{ file_info.name }}" 
+             class="image-viewer">
+        {% else %}
+        <!-- 不支持的文件类型 -->
+        <div class="file-not-supported">
+            <i class="fas fa-file"></i>
+            <h3>无法预览此文件类型</h3>
+            <p>{{ file_info.extension.upper() }} 文件不支持在线预览，请下载后使用相应软件查看。</p>
+            <a href="{{ url_for('gallery.serve_file', file_path=file_path) }}" 
+               class="btn btn-primary" download>
+                <i class="fas fa-download"></i> 下载文件
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 图片缩放功能
+    const imageViewer = document.querySelector('.image-viewer');
+    if (imageViewer) {
+        let isZoomed = false;
+        
+        imageViewer.addEventListener('click', function() {
+            if (!isZoomed) {
+                this.style.maxWidth = 'none';
+                this.style.maxHeight = 'none';
+                this.style.cursor = 'zoom-out';
+                isZoomed = true;
+            } else {
+                this.style.maxWidth = '100%';
+                this.style.maxHeight = '80vh';
+                this.style.cursor = 'zoom-in';
+                isZoomed = false;
+            }
+        });
+        
+        imageViewer.style.cursor = 'zoom-in';
+    }
+    
+    // SVG交互功能
+    const svgViewer = document.querySelector('.svg-viewer');
+    if (svgViewer) {
+        svgViewer.addEventListener('load', function() {
+            console.log('SVG文件加载完成');
+        });
+    }
+});
+</script>
+{% endblock %}

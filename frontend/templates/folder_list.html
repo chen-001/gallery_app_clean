@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}图片文件夹列表{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/folder_list.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="folder-list-container">
+    <div class="folder-header">
+        <h1><i class="fas fa-folder-open"></i> 图片文件夹列表</h1>
+        <p class="subtitle">共找到 {{ folder_count }} 个文件夹</p>
+        
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索文件夹...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="view-options">
+                <button class="view-btn active" data-view="grid">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="folder-filters">
+        <div class="filter-group">
+            <label>排序方式:</label>
+            <select id="sortSelect" class="filter-select">
+                <option value="name">名称</option>
+                <option value="date" selected>日期</option>
+                <option value="size">大小</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>排序顺序:</label>
+            <select id="orderSelect" class="filter-select">
+                <option value="asc">升序</option>
+                <option value="desc" selected>降序</option>
+            </select>
+        </div>
+        <div class="filter-stats">
+            <span id="folderCount">{{ folder_count }}</span> 个文件夹
+        </div>
+    </div>
+    
+    <div class="folder-grid" id="folderGrid">
+        {% for folder in folders %}
+        <div class="folder-card" data-name="{{ folder.name|lower }}" data-date="{{ folder.date }}" data-size="{{ folder.size }}">
+            <div class="folder-icon">
+                <i class="fas fa-folder"></i>
+                {% if folder.image_count %}
+                <span class="image-count">{{ folder.image_count }}</span>
+                {% endif %}
+            </div>
+            <div class="folder-info">
+                <h3 class="folder-name">{{ folder.name }}</h3>
+                <p class="folder-meta">
+                    {% if folder.image_count %}
+                    <span><i class="fas fa-images"></i> {{ folder.image_count }} 张</span>
+                    {% endif %}
+                    {% if folder.size %}
+                    <span><i class="fas fa-hdd"></i> {{ folder.size | filesizeformat }}</span>
+                    {% endif %}
+                    {% if folder.date %}
+                    <span><i class="fas fa-calendar"></i> {{ folder.date | date }}</span>
+                    {% endif %}
+                </p>
+                {% if folder.description %}
+                <p class="folder-description" style="display: none;">{{ folder.description }}</p>
+                {% endif %}
+            </div>
+            <div class="folder-actions">
+                <a href="{{ url_for('gallery.subfolder_list', folder_name=folder.name) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> 查看
+                </a>
+                {% if folder.has_images %}
+                <a href="{{ url_for('gallery.gallery_page', folder_name=folder.name) }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-images"></i> 图片
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>未找到匹配的文件夹</h3>
+        <p>尝试修改搜索条件或清空搜索框</p>
+    </div>
+    
+    <div class="loading-state" id="loadingState" style="display: none;">
+        <div class="loading"></div>
+        <p>加载中...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/folder_list.js') }}"></script>
+{% endblock %}
