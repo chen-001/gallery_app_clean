@@ -1,18 +1,420 @@
-(1953413) wsgi starting up on http://0.0.0.0:5202
-(1953413) accepted ('192.168.200.1', 65215)
-192.168.200.1 - - [01/Jul/2025 13:39:44] "GET /gallery/folder/%E9%81%97%E5%98%B1%E8%B0%83%E8%AF%95 HTTP/1.1" 200 40000 0.015963
-(1953413) accepted ('192.168.200.1', 65217)
-(1953413) accepted ('192.168.200.1', 65216)
-192.168.200.1 - - [01/Jul/2025 13:39:44] "GET /static/css/common.css HTTP/1.1" 304 477 0.002858
-192.168.200.1 - - [01/Jul/2025 13:39:44] "GET /static/css/folder_list.css HTTP/1.1" 304 482 0.000614
-(1953413) accepted ('192.168.200.1', 65223)
-192.168.200.1 - - [01/Jul/2025 13:39:44] "GET /static/js/common.js HTTP/1.1" 304 475 0.001015
-(1953413) accepted ('192.168.200.1', 65224)
-192.168.200.1 - - [01/Jul/2025 13:39:44] "GET /static/js/folder_list.js HTTP/1.1" 304 480 0.000598
-192.168.200.1 - - [01/Jul/2025 13:39:54] "GET /gallery/folder/%E4%BD%A0%E8%BF%BD%E6%88%91%E8%B5%B6 HTTP/1.1" 200 35947 0.002548
-192.168.200.1 - - [01/Jul/2025 13:39:54] "GET /static/css/common.css HTTP/1.1" 304 477 0.001005
-192.168.200.1 - - [01/Jul/2025 13:39:54] "GET /static/css/folder_list.css HTTP/1.1" 304 482 0.000613
-192.168.200.1 - - [01/Jul/2025 13:39:54] "GET /static/js/folder_list.js HTTP/1.1" 304 480 0.000594
-192.168.200.1 - - [01/Jul/2025 13:39:54] "GET /static/js/common.js HTTP/1.1" 304 475 0.000559
-192.168.200.1 - - [01/Jul/2025 13:40:06] "GET /gallery/api/described-images/%E4%BD%A0%E8%BF%BD%E6%88%91%E8%B5%B6 HTTP/1.1" 200 427 0.001563
-192.168.200.1 - - [01/Jul/2025 13:40:07] "GET /gallery/api/described-images/%E4%BD%A0%E8%BF%BD%E6%88%91%E8%B5%B6 HTTP/1.1" 200 427 0.000922
+(811459) wsgi starting up on http://0.0.0.0:5202
+(811459) accepted ('127.0.0.1', 50120)
+127.0.0.1 - - [01/Jul/2025 20:50:16] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=test HTTP/1.1" 200 1495 0.007954
+(811459) accepted ('127.0.0.1', 49696)
+127.0.0.1 - - [01/Jul/2025 20:50:20] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=test HTTP/1.1" 200 1495 0.004404
+(811459) accepted ('127.0.0.1', 49710)
+127.0.0.1 - - [01/Jul/2025 20:50:26] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=test HTTP/1.1" 200 1495 0.005992
+(811459) accepted ('192.168.200.1', 55595)
+192.168.200.1 - - [01/Jul/2025 20:56:08] "GET /gallery/folder/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81 HTTP/1.1" 200 71569 0.056541
+(811459) accepted ('192.168.200.1', 55602)
+(811459) accepted ('192.168.200.1', 55603)
+192.168.200.1 - - [01/Jul/2025 20:56:09] "GET /static/css/folder_list.css HTTP/1.1" 304 482 0.001106
+192.168.200.1 - - [01/Jul/2025 20:56:09] "GET /static/css/common.css HTTP/1.1" 304 477 0.000587
+192.168.200.1 - - [01/Jul/2025 20:56:09] "GET /static/js/common.js HTTP/1.1" 304 475 0.001743
+192.168.200.1 - - [01/Jul/2025 20:56:09] "GET /static/js/folder_list.js HTTP/1.1" 304 480 0.001295
+(811459) accepted ('192.168.200.1', 55604)
+(811459) accepted ('192.168.200.1', 55605)
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /static/css/gallery.css HTTP/1.1" 404 2767 0.002321
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /static/css/common.css HTTP/1.1" 304 477 0.000632
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_min_ask_fold.svg HTTP/1.1" 304 496 0.000971
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_autocorr_ask_fold.svg HTTP/1.1" 304 501 0.000602
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_autocorr_ask_fold.svg HTTP/1.1" 304 504 0.001136
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_mean_ask.svg HTTP/1.1" 304 494 0.001135
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/images/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080 HTTP/1.1" 200 194967 0.969220
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_autocorr_ask_fold.svg HTTP/1.1" 304 501 0.001673
+(811459) accepted ('192.168.200.1', 55629)
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 509 0.001370
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_peak_price_ask.svg HTTP/1.1" 304 503 0.001269
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 522 0.001583
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_autocorr_ask_fold.svg HTTP/1.1" 304 504 0.001249
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_mean_ask.svg HTTP/1.1" 304 494 0.001035
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_min_ask_fold.svg HTTP/1.1" 304 496 0.000886
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_hang_ask.svg HTTP/1.1" 304 505 0.000918
+192.168.200.1 - - [01/Jul/2025 20:56:12] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_min_ask_fold.svg HTTP/1.1" 304 496 0.000686
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_seconds_bid.svg HTTP/1.1" 304 504 0.001405
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_kurt_ask.svg HTTP/1.1" 304 494 0.000990
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_seconds_ask.svg HTTP/1.1" 304 504 0.000900
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_dura_starts_bid_fold.svg HTTP/1.1" 304 512 0.000817
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_min_ask_fold.svg HTTP/1.1" 304 498 0.000823
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_corr_amount_dura_hang_rate_bid_fold.svg HTTP/1.1" 304 521 0.000803
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_max_ask_fold.svg HTTP/1.1" 304 496 0.001219
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_peak_price_ask.svg HTTP/1.1" 304 504 0.000715
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_peak_price_bid.svg HTTP/1.1" 304 503 0.000707
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_std_ask.svg HTTP/1.1" 304 494 0.000779
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_max_ask_fold.svg HTTP/1.1" 304 498 0.000787
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_hang_bid.svg HTTP/1.1" 304 505 0.000792
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.001316
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 511 0.000884
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 520 0.001267
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_peak_price_ask_fold.svg HTTP/1.1" 304 510 0.000780
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.000739
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_amount_dura_future_rate_bid_fold.svg HTTP/1.1" 304 521 0.000774
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_corr_dura_starts_ask.svg HTTP/1.1" 304 505 0.000807
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_mean_ask.svg HTTP/1.1" 304 495 0.000790
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 521 0.001309
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_min_ask_fold.svg HTTP/1.1" 304 496 0.001319
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_future_rate_bid_fold.svg HTTP/1.1" 304 523 0.000920
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_min_ask_fold.svg HTTP/1.1" 304 496 0.000813
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 522 0.000829
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 510 0.001294
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.000782
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_max_ask.svg HTTP/1.1" 304 493 0.001252
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_future_ask_fold.svg HTTP/1.1" 304 512 0.001315
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_mean_ask.svg HTTP/1.1" 304 493 0.000771
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_hang_rate_ask.svg HTTP/1.1" 304 516 0.000714
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_peak_price_bid_fold.svg HTTP/1.1" 304 510 0.001097
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_hang_rate_bid.svg HTTP/1.1" 304 516 0.000721
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_price_rate_ask_fold.svg HTTP/1.1" 304 509 0.000844
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_skew_ask.svg HTTP/1.1" 304 494 0.001161
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_act_buy_rate_ask.svg HTTP/1.1" 304 505 0.001327
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_act_buy_rate_ask.svg HTTP/1.1" 304 508 0.000757
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_hang_ask.svg HTTP/1.1" 304 505 0.000711
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_corr_amount_dura_hang_rate_bid.svg HTTP/1.1" 304 513 0.000869
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /static/js/common.js HTTP/1.1" 304 475 0.000633
+192.168.200.1 - - [01/Jul/2025 20:56:13] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_max_ask_fold.svg HTTP/1.1" 304 496 0.000712
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 522 0.001280
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_peak_price_ask.svg HTTP/1.1" 304 503 0.000800
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 509 0.001234
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_seconds_bid.svg HTTP/1.1" 304 504 0.000681
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_min_ask_fold.svg HTTP/1.1" 304 498 0.000659
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_kurt_ask.svg HTTP/1.1" 304 494 0.000651
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_min_ask_fold.svg HTTP/1.1" 304 496 0.001297
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_dura_starts_bid_fold.svg HTTP/1.1" 304 512 0.000795
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_seconds_ask.svg HTTP/1.1" 304 504 0.000838
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 511 0.001723
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_std_ask.svg HTTP/1.1" 304 494 0.000874
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_peak_price_bid.svg HTTP/1.1" 304 503 0.000774
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_max_ask_fold.svg HTTP/1.1" 304 498 0.001385
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_corr_amount_dura_hang_rate_bid_fold.svg HTTP/1.1" 304 521 0.000901
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_max_ask_fold.svg HTTP/1.1" 304 496 0.000844
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_corr_peak_price_ask.svg HTTP/1.1" 304 504 0.000843
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.000837
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_hang_bid.svg HTTP/1.1" 304 505 0.000843
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_min_ask_fold.svg HTTP/1.1" 304 496 0.001297
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 521 0.000772
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_corr_dura_starts_ask.svg HTTP/1.1" 304 505 0.000701
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_amount_dura_future_rate_bid_fold.svg HTTP/1.1" 304 521 0.000686
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_starts_min_ask_fold.svg HTTP/1.1" 304 496 0.001396
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_mean_ask.svg HTTP/1.1" 304 495 0.000865
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_peak_price_ask_fold.svg HTTP/1.1" 304 510 0.001451
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 520 0.001334
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 304 522 0.001135
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.001411
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_dura_seconds_bid.svg HTTP/1.1" 304 505 0.000790
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_dura_starts_ask_fold.svg HTTP/1.1" 304 510 0.000789
+192.168.200.1 - - [01/Jul/2025 20:56:14] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_future_rate_bid_fold.svg HTTP/1.1" 304 523 0.000822
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_peak_price_bid_fold.svg HTTP/1.1" 304 510 0.001330
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_max_ask.svg HTTP/1.1" 304 493 0.000756
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_hang_rate_ask.svg HTTP/1.1" 304 516 0.000741
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_corr_amount_future_ask_fold.svg HTTP/1.1" 304 512 0.000724
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_kinds_corr_price_rate_ask_fold.svg HTTP/1.1" 304 509 0.001393
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/dura_seconds_corr_amount_dura_hang_rate_bid.svg HTTP/1.1" 304 516 0.000934
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_dura_mean_ask.svg HTTP/1.1" 304 493 0.000897
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_corr_act_buy_rate_ask.svg HTTP/1.1" 304 508 0.001331
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/peak_price_corr_amount_dura_hang_rate_bid.svg HTTP/1.1" 304 513 0.000979
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/price_rate_max_ask_fold.svg HTTP/1.1" 304 496 0.001890
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/act_buy_rate_skew_ask.svg HTTP/1.1" 304 494 0.001484
+192.168.200.1 - - [01/Jul/2025 20:56:15] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_hang_corr_act_buy_rate_ask.svg HTTP/1.1" 304 505 0.001429
+192.168.200.1 - - [01/Jul/2025 20:56:31] "GET /gallery/ HTTP/1.1" 200 59379 0.041774
+192.168.200.1 - - [01/Jul/2025 20:56:32] "GET /static/css/folder_list.css HTTP/1.1" 304 482 0.000944
+192.168.200.1 - - [01/Jul/2025 20:56:32] "GET /static/css/common.css HTTP/1.1" 304 477 0.000521
+192.168.200.1 - - [01/Jul/2025 20:56:32] "GET /static/js/common.js HTTP/1.1" 304 475 0.001375
+192.168.200.1 - - [01/Jul/2025 20:56:32] "GET /static/js/folder_list.js HTTP/1.1" 304 480 0.000902
+192.168.200.1 - - [01/Jul/2025 20:56:37] "GET /gallery/folder/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81 HTTP/1.1" 200 71569 0.002804
+192.168.200.1 - - [01/Jul/2025 20:56:37] "GET /static/css/common.css HTTP/1.1" 304 477 0.001521
+192.168.200.1 - - [01/Jul/2025 20:56:37] "GET /static/css/folder_list.css HTTP/1.1" 304 482 0.001548
+192.168.200.1 - - [01/Jul/2025 20:56:38] "GET /static/js/common.js HTTP/1.1" 304 475 0.001513
+192.168.200.1 - - [01/Jul/2025 20:56:38] "GET /static/js/folder_list.js HTTP/1.1" 304 480 0.001145
+192.168.200.1 - - [01/Jul/2025 20:56:41] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=c HTTP/1.1" 200 75232 0.068678
+192.168.200.1 - - [01/Jul/2025 20:56:42] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=ci HTTP/1.1" 200 493 0.008244
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:42] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/act_buy_rate_mean_askvsbid_abs.svg HTTP/1.1" 200 98911 0.083015
+192.168.200.1 - - [01/Jul/2025 20:56:43] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=corr HTTP/1.1" 200 79146 0.217181
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_future_autocorr_askvsbid.svg HTTP/1.1" 304 504 0.001611
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_dura_corr_amount_hang_bid.svg HTTP/1.1" 304 505 0.001240
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_dura_corr_dura_seconds_ask_abs.svg HTTP/1.1" 304 510 0.002090
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_hang_autocorr_bid.svg HTTP/1.1" 304 496 0.001619
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/price_kinds_corr_price_rate_bid.svg HTTP/1.1" 304 504 0.001401
+(811459) accepted ('192.168.200.1', 55944)
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/amount_dura_corr_dura_seconds_bid_abs.svg HTTP/1.1" 304 510 0.001256
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/dura_starts_corr_peak_price_ask.svg HTTP/1.1" 200 139872 0.161399
+(811459) accepted ('192.168.200.1', 55949)
+(811459) accepted ('192.168.200.1', 55950)
+(811459) accepted ('192.168.200.1', 55954)
+(811459) accepted ('192.168.200.1', 55952)
+(811459) accepted ('192.168.200.1', 55951)
+(811459) accepted ('192.168.200.1', 55953)
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_future_autocorr_askvsbid.svg HTTP/1.1" 200 229984 0.731862
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=corr%20ask HTTP/1.1" 200 80218 0.193892
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:45] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/act_buy_rate_corr_dura_starts_ask.svg HTTP/1.1" 200 74338 0.748549
+192.168.200.1 - - [01/Jul/2025 20:56:46] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B080/amount_future_autocorr_ask_fold.svg HTTP/1.1" 304 504 0.001719
+192.168.200.1 - - [01/Jul/2025 20:56:46] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_future_corr_peak_price_ask_fold.svg HTTP/1.1" 304 509 0.001725
+192.168.200.1 - - [01/Jul/2025 20:56:46] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/price_kinds_corr_price_rate_ask.svg HTTP/1.1" 200 419434 0.258149
+192.168.200.1 - - [01/Jul/2025 20:56:46] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_future_autocorr_askvsbid.svg HTTP/1.1" 304 504 0.001650
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:46] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/amount_dura_corr_dura_seconds_ask.svg HTTP/1.1" 200 270946 1.559839
+192.168.200.1 - - [01/Jul/2025 20:56:48] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_dura_corr_dura_seconds_ask.svg HTTP/1.1" 200 474200 0.029088
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:48] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/act_buy_rate_corr_dura_starts_ask.svg HTTP/1.1" 200 229986 2.213043
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:48] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/dura_starts_corr_amount_dura_future_rate_ask_fold.svg HTTP/1.1" 200 189042 2.172912
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:48] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_hang_corr_price_kinds_ask.svg HTTP/1.1" 200 311904 2.212632
+(811459) accepted ('192.168.200.1', 55982)
+(811459) accepted ('192.168.200.1', 55983)
+(811459) accepted ('192.168.200.1', 55984)
+(811459) accepted ('192.168.200.1', 55986)
+(811459) accepted ('192.168.200.1', 55985)
+(811459) accepted ('192.168.200.1', 55987)
+192.168.200.1 - - [01/Jul/2025 20:56:49] "GET /gallery/api/search-in-subfolders/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81?q=corr%20ask%20vs HTTP/1.1" 200 19648 0.015776
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:49] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/peak_price_corr_amount_dura_future_rate_ask_abs.svg HTTP/1.1" 200 74350 2.290037
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:49] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/act_buy_rate_corr_amount_dura_hang_rate_ask_fold.svg HTTP/1.1" 200 213617 2.947770
+192.168.200.1 - - [01/Jul/2025 20:56:50] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/peak_price_autocorr_askvsbid.svg HTTP/1.1" 200 436242 0.735286
+192.168.200.1 - - [01/Jul/2025 20:56:51] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/dura_starts_autocorr_askvsbid.svg HTTP/1.1" 200 415507 1.348150
+192.168.200.1 - - [01/Jul/2025 20:56:51] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_future_autocorr_askvsbid.svg HTTP/1.1" 304 504 0.001717
+192.168.200.1 - - [01/Jul/2025 20:56:52] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_future_autocorr_askvsbid.svg HTTP/1.1" 200 414323 2.391004
+192.168.200.1 - - [01/Jul/2025 20:56:52] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/act_buy_rate_corr_peak_price_askvsbid.svg HTTP/1.1" 200 417718 0.004452
+192.168.200.1 - - [01/Jul/2025 20:56:52] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_dura_corr_dura_seconds_askvsbid_abs.svg HTTP/1.1" 200 458740 2.506813
+192.168.200.1 - - [01/Jul/2025 20:56:52] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/peak_price_autocorr_askvsbid.svg HTTP/1.1" 200 418569 2.578472
+(811459) accepted ('192.168.200.1', 56030)
+(811459) accepted ('192.168.200.1', 56031)
+(811459) accepted ('192.168.200.1', 56033)
+(811459) accepted ('192.168.200.1', 56034)
+(811459) accepted ('192.168.200.1', 56035)
+(811459) accepted ('192.168.200.1', 56032)
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:54] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/peak_price_autocorr_askvsbid.svg HTTP/1.1" 200 287325 0.552724
+192.168.200.1 - - [01/Jul/2025 20:56:55] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/dura_seconds_corr_amount_dura_future_rate_askvsbid.svg HTTP/1.1" 200 421462 0.723169
+192.168.200.1 - - [01/Jul/2025 20:56:55] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/act_buy_rate_autocorr_askvsbid.svg HTTP/1.1" 200 436408 1.066771
+192.168.200.1 - - [01/Jul/2025 20:56:56] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/act_buy_rate_autocorr_askvsbid.svg HTTP/1.1" 200 417469 1.208484
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:56] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/peak_price_autocorr_askvsbid.svg HTTP/1.1" 200 393820 3.083195
+192.168.200.1 - - [01/Jul/2025 20:56:56] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/act_buy_rate_corr_dura_starts_askvsbid.svg HTTP/1.1" 200 494345 1.541874
+192.168.200.1 - - [01/Jul/2025 20:56:56] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/amount_future_autocorr_askvsbid.svg HTTP/1.1" 200 417935 0.048580
+192.168.200.1 - - [01/Jul/2025 20:56:56] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/dura_starts_autocorr_askvsbid.svg HTTP/1.1" 200 441387 2.012249
+192.168.200.1 - - [01/Jul/2025 20:56:57] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/act_buy_rate_corr_peak_price_askvsbid.svg HTTP/1.1" 200 419331 2.484332
+Traceback (most recent call last):
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 641, in handle_one_response
+    write(b''.join(towrite))
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/wsgi.py", line 575, in write
+    wfile.flush()
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/socket.py", line 736, in write
+    return self._sock.send(b)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 383, in send
+    return self._send_loop(self.fd.send, data, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chenzongwei/.conda/envs/chenzongwei311/lib/python3.11/site-packages/eventlet/greenio/base.py", line 370, in _send_loop
+    return send_method(data, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+192.168.200.1 - - [01/Jul/2025 20:56:57] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/peak_price_corr_amount_dura_future_rate_askvsbid_abs.svg HTTP/1.1" 200 418421 7.952945
+192.168.200.1 - - [01/Jul/2025 20:56:59] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/peak_price_autocorr_askvsbid.svg HTTP/1.1" 200 436154 1.708301
+192.168.200.1 - - [01/Jul/2025 20:56:59] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_hang_corr_act_buy_rate_askvsbid.svg HTTP/1.1" 200 437927 1.939636
+192.168.200.1 - - [01/Jul/2025 20:56:59] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/dura_starts_autocorr_askvsbid.svg HTTP/1.1" 304 501 0.001688
+192.168.200.1 - - [01/Jul/2025 20:56:59] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/price_kinds_corr_price_rate_askvsbid_abs.svg HTTP/1.1" 200 494569 1.939469
+192.168.200.1 - - [01/Jul/2025 20:56:59] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/peak_price_autocorr_askvsbid.svg HTTP/1.1" 206 678 0.001806
+192.168.200.1 - - [01/Jul/2025 20:57:00] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_future_autocorr_askvsbid.svg HTTP/1.1" 200 414392 0.002482
+192.168.200.1 - - [01/Jul/2025 20:57:01] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/peak_price_autocorr_askvsbid.svg HTTP/1.1" 206 679 0.001817
+192.168.200.1 - - [01/Jul/2025 20:57:01] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/dura_starts_autocorr_askvsbid.svg HTTP/1.1" 200 441544 2.177902
+192.168.200.1 - - [01/Jul/2025 20:57:01] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_dura_corr_dura_seconds_askvsbid_abs.svg HTTP/1.1" 206 692 0.001800
+192.168.200.1 - - [01/Jul/2025 20:57:02] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/peak_price_autocorr_askvsbid.svg HTTP/1.1" 304 501 0.001659
+192.168.200.1 - - [01/Jul/2025 20:57:02] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/act_buy_rate_corr_peak_price_askvsbid.svg HTTP/1.1" 206 688 0.001446
+192.168.200.1 - - [01/Jul/2025 20:57:02] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_dura_corr_dura_seconds_askvsbid_abs.svg HTTP/1.1" 200 465773 0.053285
+192.168.200.1 - - [01/Jul/2025 20:57:02] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/act_buy_rate_corr_peak_price_askvsbid.svg HTTP/1.1" 200 418786 2.115885
+192.168.200.1 - - [01/Jul/2025 20:57:03] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_future_autocorr_askvsbid.svg HTTP/1.1" 304 504 0.001475
+192.168.200.1 - - [01/Jul/2025 20:57:03] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B030/amount_future_autocorr_askvsbid.svg HTTP/1.1" 304 504 0.001666
+192.168.200.1 - - [01/Jul/2025 20:57:04] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/peak_price_corr_amount_dura_future_rate_askvsbid_abs.svg HTTP/1.1" 206 703 0.001750
+192.168.200.1 - - [01/Jul/2025 20:57:04] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/peak_price_autocorr_askvsbid.svg HTTP/1.1" 206 288439 0.002601
+192.168.200.1 - - [01/Jul/2025 20:57:04] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/amount_dura_corr_dura_seconds_askvsbid_abs.svg HTTP/1.1" 200 465254 1.135342
+192.168.200.1 - - [01/Jul/2025 20:57:05] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%811/peak_price_autocorr_askvsbid.svg HTTP/1.1" 206 26274 0.002078
+192.168.200.1 - - [01/Jul/2025 20:57:05] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/act_buy_rate_corr_peak_price_askvsbid.svg HTTP/1.1" 206 34859 0.001888
+192.168.200.1 - - [01/Jul/2025 20:57:05] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B020/amount_dura_corr_dura_seconds_askvsbid_abs.svg HTTP/1.1" 206 34093 0.001774
+192.168.200.1 - - [01/Jul/2025 20:57:06] "GET /gallery/serve/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81/%E4%B8%87%E9%87%8C%E9%95%BF%E5%BE%81%E6%94%BE%E5%AE%BD%E5%8F%82%E6%95%B050/peak_price_corr_amount_dura_future_rate_askvsbid_abs.svg HTTP/1.1" 206 217228 0.002425

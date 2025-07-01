@@ -184,6 +184,9 @@ class GalleryService:
                     file_info = get_file_info(item)
                     if file_info:
                         file_info['relative_path'] = str(relative_path)
+                        # 添加父文件夹信息，便于在结果中显示来源
+                        folder_path = item.parent.relative_to(self.images_root)
+                        file_info['parent_folder'] = str(folder_path) if folder_path != Path('.') else ''
                         results.append(file_info)
             
             # 按相关性排序（名称匹配度）
@@ -192,6 +195,179 @@ class GalleryService:
             
         except Exception as e:
             logger.error(f"搜索文件失败 {query}: {e}")
+            raise
+
+    def search_images_in_subfolders(self, parent_folder: str, query: str) -> List[Dict]:
+        """在指定父文件夹的所有子文件夹中搜索图片，支持多关键词AND搜索"""
+        try:
+            results = []
+            parent_path = self.images_root / parent_folder
+            
+            if not parent_path.exists():
+                return results
+            
+            # 支持多关键词搜索：按空格分割关键词，所有关键词都必须匹配
+            keywords = [kw.lower().strip() for kw in query.split() if kw.strip()]
+            if not keywords:
+                return results
+            
+            # 遍历所有子文件夹
+            for subfolder in parent_path.iterdir():
+                if not subfolder.is_dir() or subfolder.name.startswith('.'):
+                    continue
+                
+                # 在子文件夹中搜索图片
+                for item in subfolder.rglob('*'):
+                    if not item.is_file() or not is_image_file(item):
+                        continue
+                    
+                    # 多关键词匹配：文件名必须包含所有关键词
+                    filename_lower = item.name.lower()
+                    if all(keyword in filename_lower for keyword in keywords):
+                        relative_path = item.relative_to(self.images_root)
+                        file_info = get_file_info(item)
+                        if file_info:
+                            file_info['relative_path'] = str(relative_path)
+                            # 添加子文件夹信息
+                            subfolder_path = item.parent.relative_to(parent_path)
+                            file_info['subfolder'] = subfolder.name
+                            file_info['subfolder_path'] = str(subfolder_path) if subfolder_path != Path('.') else ''
+                            file_info['parent_folder'] = parent_folder
+                            
+                            # 添加图片描述信息
+                            try:
+                                folder_relative = str(item.parent.relative_to(self.images_root))
+                                description = self.get_image_description(folder_relative, item.name)
+                                file_info['description'] = description
+                                file_info['has_description'] = description is not None and description.strip() != ""
+                            except Exception as e:
+                                logger.debug(f"获取图片描述失败 {item}: {e}")
+                                file_info['description'] = None
+                                file_info['has_description'] = False
+                            
+                            # 添加收益率信息
+                            try:
+                                neu_ret_file = item.parent / 'neu_rets.json'
+                                if neu_ret_file.exists():
+                                    with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                                        neu_ret_data = json.load(f)
+                                        file_key = item.name.rsplit('.', 1)[0]
+                                        file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
+                                else:
+                                    file_info['neu_ret'] = 0
+                            except Exception:
+                                file_info['neu_ret'] = 0
+                            
+                            # 添加匹配的关键词信息，用于排序
+                            file_info['matched_keywords'] = keywords
+                            results.append(file_info)
+            
+            # 按相关性排序：先按子文件夹分组，再按匹配度排序
+            def calculate_relevance(x):
+                filename_lower = x['name'].lower()
+                # 计算所有关键词在文件名中的位置，位置越靠前越相关
+                total_position = sum(filename_lower.find(kw) for kw in keywords if kw in filename_lower)
+                return (x['subfolder'], total_position)
+            
+            results.sort(key=calculate_relevance)
+            return results[:100]  # 限制结果数量
+            
+        except Exception as e:
+            logger.error(f"在子文件夹中搜索图片失败 {parent_folder}, {query}: {e}")
+            raise
+
+    def get_unique_image_names_in_subfolders(self, parent_folder: str) -> List[str]:
+        """获取父文件夹下所有子文件夹中的图片名称（去重）"""
+        try:
+            parent_path = self.images_root / parent_folder
+            
+            if not parent_path.exists():
+                return []
+            
+            unique_names = set()
+            
+            # 遍历所有子文件夹
+            for subfolder in parent_path.iterdir():
+                if not subfolder.is_dir() or subfolder.name.startswith('.'):
+                    continue
+                
+                # 在子文件夹中收集图片名称
+                for item in subfolder.rglob('*'):
+                    if not item.is_file() or not is_image_file(item):
+                        continue
+                    
+                    unique_names.add(item.name)
+            
+            # 按名称排序并返回
+            return sorted(list(unique_names), key=lambda x: x.lower())
+            
+        except Exception as e:
+            logger.error(f"获取去重图片名称失败 {parent_folder}: {e}")
+            raise
+
+    def find_images_by_name_in_subfolders(self, parent_folder: str, image_name: str) -> List[Dict]:
+        """根据图片名称在所有子文件夹中查找匹配的图片"""
+        try:
+            results = []
+            parent_path = self.images_root / parent_folder
+            
+            if not parent_path.exists():
+                return results
+            
+            # 遍历所有子文件夹
+            for subfolder in parent_path.iterdir():
+                if not subfolder.is_dir() or subfolder.name.startswith('.'):
+                    continue
+                
+                # 在子文件夹中查找指定名称的图片
+                for item in subfolder.rglob('*'):
+                    if not item.is_file() or not is_image_file(item):
+                        continue
+                    
+                    # 精确匹配图片名称
+                    if item.name == image_name:
+                        relative_path = item.relative_to(self.images_root)
+                        file_info = get_file_info(item)
+                        if file_info:
+                            file_info['relative_path'] = str(relative_path)
+                            # 添加子文件夹信息
+                            subfolder_path = item.parent.relative_to(parent_path)
+                            file_info['subfolder'] = subfolder.name
+                            file_info['subfolder_path'] = str(subfolder_path) if subfolder_path != Path('.') else ''
+                            file_info['parent_folder'] = parent_folder
+                            
+                            # 添加图片描述信息
+                            try:
+                                folder_relative = str(item.parent.relative_to(self.images_root))
+                                description = self.get_image_description(folder_relative, item.name)
+                                file_info['description'] = description
+                                file_info['has_description'] = description is not None and description.strip() != ""
+                            except Exception as e:
+                                logger.debug(f"获取图片描述失败 {item}: {e}")
+                                file_info['description'] = None
+                                file_info['has_description'] = False
+                            
+                            # 添加收益率信息
+                            try:
+                                neu_ret_file = item.parent / 'neu_rets.json'
+                                if neu_ret_file.exists():
+                                    with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                                        neu_ret_data = json.load(f)
+                                        file_key = item.name.rsplit('.', 1)[0]
+                                        file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
+                                else:
+                                    file_info['neu_ret'] = 0
+                            except Exception:
+                                file_info['neu_ret'] = 0
+                            
+                            results.append(file_info)
+            
+            # 按子文件夹名称排序
+            results.sort(key=lambda x: x['subfolder'])
+            return results
+            
+        except Exception as e:
+            logger.error(f"根据名称查找图片失败 {parent_folder}, {image_name}: {e}")
             raise
     
     def delete_files(self, folder_name: str, file_paths: List[str]) -> Dict:

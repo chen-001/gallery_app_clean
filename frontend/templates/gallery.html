@@ -525,6 +525,159 @@ kbd {
         width: 100%;
     }
 }
+
+/* 悬浮按钮样式 */
+.floating-menu-btn {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    z-index: 999;
+    background: linear-gradient(135deg, #e91e63 0%, #ff69b4 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-menu-btn:hover {
+    background: linear-gradient(135deg, #c2185b 0%, #f48fb1 100%);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.6);
+}
+
+.floating-menu-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* 悬浮菜单样式 */
+.floating-menu {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100vh;
+    background: linear-gradient(135deg, #fff5f8 0%, #ffe8f0 100%);
+    border-left: 1px solid rgba(255, 182, 193, 0.3);
+    box-shadow: -4px 0 20px rgba(233, 30, 99, 0.2);
+    z-index: 998;
+    transition: right 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.floating-menu.open {
+    right: 0;
+}
+
+.floating-menu-header {
+    background: linear-gradient(135deg, #e91e63 0%, #ff69b4 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(233, 30, 99, 0.3);
+}
+
+.floating-menu-header h3 {
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.floating-menu-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.floating-menu-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.floating-menu-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.image-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.image-list-item {
+    border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.image-list-item:hover {
+    background: rgba(233, 30, 99, 0.1);
+}
+
+.image-list-link {
+    display: block;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #2d3748;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-all;
+    transition: color 0.2s ease;
+}
+
+.image-list-link:hover {
+    color: #e91e63;
+}
+
+.image-list-link i {
+    margin-right: 8px;
+    color: #e91e63;
+    font-size: 12px;
+}
+
+.floating-menu-footer {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255, 182, 193, 0.2);
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .floating-menu {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .floating-menu-btn {
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -611,7 +764,7 @@ kbd {
     {% if images and images.images %}
     <div class="gallery-grid">
         {% for image in images.images %}
-        <div class="image-card">
+        <div class="image-card" id="image-{{ loop.index }}">
             <div class="image-thumbnail">
                 {% if image.extension == '.svg' %}
                 <object data="{{ url_for('gallery.serve_file', file_path=image.relative_path) }}" 
@@ -688,6 +841,37 @@ kbd {
         <p>加载中...</p>
     </div>
 </div>
+
+<!-- 悬浮按钮 -->
+{% if images and images.images %}
+<button class="floating-menu-btn" id="floatingMenuBtn" title="显示图片列表">
+    <i class="fas fa-list"></i>
+</button>
+
+<!-- 悬浮菜单 -->
+<div class="floating-menu" id="floatingMenu">
+    <div class="floating-menu-header">
+        <h3><i class="fas fa-images"></i> 图片列表</h3>
+        <button class="floating-menu-close" id="floatingMenuClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="floating-menu-content">
+        <ul class="image-list" id="imageList">
+            {% for image in images.images %}
+            <li class="image-list-item">
+                <a href="#image-{{ loop.index }}" class="image-list-link" data-image-index="{{ loop.index - 1 }}">
+                    <i class="fas fa-image"></i>{{ image.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="floating-menu-footer">
+        共 {{ images.total }} 张图片
+    </div>
+</div>
+{% endif %}
 
 <!-- 描述编辑模态框 -->
 <div class="modal" id="descriptionModal" style="display: none;">
@@ -1314,6 +1498,71 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 页面加载完成后渲染 markdown
     renderMarkdown();
+    
+    // 悬浮菜单功能
+    const floatingMenuBtn = document.getElementById('floatingMenuBtn');
+    const floatingMenu = document.getElementById('floatingMenu');
+    const floatingMenuClose = document.getElementById('floatingMenuClose');
+    const imageListLinks = document.querySelectorAll('.image-list-link');
+    
+    // 打开悬浮菜单
+    if (floatingMenuBtn) {
+        floatingMenuBtn.addEventListener('click', function() {
+            floatingMenu.classList.add('open');
+        });
+    }
+    
+    // 关闭悬浮菜单
+    if (floatingMenuClose) {
+        floatingMenuClose.addEventListener('click', function() {
+            floatingMenu.classList.remove('open');
+        });
+    }
+    
+    // 点击菜单外部关闭
+    document.addEventListener('click', function(e) {
+        if (floatingMenu && floatingMenu.classList.contains('open') && 
+            !floatingMenu.contains(e.target) && !floatingMenuBtn.contains(e.target)) {
+            floatingMenu.classList.remove('open');
+        }
+    });
+    
+    // 点击图片名称滚动到对应图片
+    imageListLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const imageIndex = parseInt(this.dataset.imageIndex);
+            const targetImageCard = document.getElementById(`image-${imageIndex + 1}`);
+            
+            if (targetImageCard) {
+                // 平滑滚动到目标图片
+                targetImageCard.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                
+                // 高亮显示目标图片（临时效果）
+                targetImageCard.style.transition = 'all 0.3s ease';
+                targetImageCard.style.transform = 'scale(1.02)';
+                targetImageCard.style.boxShadow = '0 8px 25px rgba(233, 30, 99, 0.6)';
+                
+                setTimeout(() => {
+                    targetImageCard.style.transform = '';
+                    targetImageCard.style.boxShadow = '';
+                }, 1000);
+                
+                // 关闭菜单
+                floatingMenu.classList.remove('open');
+            }
+        });
+    });
+    
+    // ESC键关闭悬浮菜单
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && floatingMenu && floatingMenu.classList.contains('open')) {
+            floatingMenu.classList.remove('open');
+        }
+    });
 });
 </script>
 {% endblock %}

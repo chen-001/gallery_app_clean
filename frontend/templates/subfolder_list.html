@@ -446,6 +446,178 @@ kbd {
         height: 400px;
     }
 }
+
+/* 父文件夹悬浮按钮样式 */
+.parent-floating-btn {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    z-index: 999;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.parent-floating-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+}
+
+.parent-floating-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* 父文件夹悬浮菜单样式 */
+.parent-floating-menu {
+    position: fixed;
+    top: 0;
+    right: -450px;
+    width: 420px;
+    height: 100vh;
+    background: linear-gradient(135deg, #f8fff9 0%, #e6f9ea 100%);
+    border-left: 1px solid rgba(40, 167, 69, 0.3);
+    box-shadow: -4px 0 20px rgba(40, 167, 69, 0.2);
+    z-index: 998;
+    transition: right 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.parent-floating-menu.open {
+    right: 0;
+}
+
+.parent-floating-menu-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+}
+
+.parent-floating-menu-header h3 {
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.parent-floating-menu-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.parent-floating-menu-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.parent-floating-menu-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.parent-image-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.parent-image-list-item {
+    border-bottom: 1px solid rgba(40, 167, 69, 0.2);
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.parent-image-list-item:hover {
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.parent-image-list-link {
+    display: block;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #2d3748;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-all;
+    transition: color 0.2s ease;
+}
+
+.parent-image-list-link:hover {
+    color: #28a745;
+}
+
+.parent-image-list-link i {
+    margin-right: 8px;
+    color: #28a745;
+    font-size: 12px;
+}
+
+.parent-floating-menu-footer {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px 20px;
+    border-top: 1px solid rgba(40, 167, 69, 0.2);
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+}
+
+.parent-floating-menu-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.parent-floating-menu-loading .loading {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .parent-floating-menu {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .parent-floating-btn {
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -483,6 +655,13 @@ kbd {
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="搜索子文件夹...">
                 <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="search-container">
+                <input type="text" id="imageSearchInput" class="search-input" placeholder="搜索子文件夹中的图片... (支持多关键词，用空格分隔)">
+                <i class="fas fa-image search-icon"></i>
+                <button class="btn btn-secondary btn-sm" id="clearImageSearch" style="display: none;">
+                    <i class="fas fa-times"></i> 清除
+                </button>
             </div>
             <div class="action-buttons">
                 <button class="btn btn-primary btn-sm" id="goToGallery">
@@ -527,6 +706,28 @@ kbd {
         </div>
     </div>
     
+    <!-- 图片搜索结果显示区域 -->
+    <div class="described-images-section" id="imageSearchResultsSection" style="display: none;">
+        <div class="section-header">
+            <h3><i class="fas fa-search"></i> 搜索结果</h3>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success btn-sm" id="sortSearchResultsByReturn" style="display: none;">
+                    <i class="fas fa-chart-line"></i> 按收益率排序
+                </button>
+                <button class="btn btn-secondary btn-sm" id="hideImageSearchResults">
+                    <i class="fas fa-times"></i> 隐藏
+                </button>
+            </div>
+        </div>
+        <div class="gallery-grid" id="imageSearchResultsGrid">
+            <!-- 动态加载搜索结果 -->
+        </div>
+        <div class="loading-state" id="imageSearchLoading" style="display: none;">
+            <div class="loading"></div>
+            <p>搜索中...</p>
+        </div>
+    </div>
+
     <!-- 有描述图片显示区域 -->
     <div class="described-images-section" id="describedImagesSection">
         <div class="section-header">
@@ -606,6 +807,52 @@ kbd {
     <div class="loading-state" id="loadingState" style="display: none;">
         <div class="loading"></div>
         <p>加载中...</p>
+    </div>
+</div>
+
+<!-- 父文件夹悬浮按钮 -->
+{% if subfolders %}
+<button class="parent-floating-btn" id="parentFloatingBtn" title="显示图片名称列表">
+    <i class="fas fa-th-list"></i>
+</button>
+
+<!-- 父文件夹悬浮菜单 -->
+<div class="parent-floating-menu" id="parentFloatingMenu">
+    <div class="parent-floating-menu-header">
+        <h3><i class="fas fa-images"></i> 去重图片列表</h3>
+        <button class="parent-floating-menu-close" id="parentFloatingMenuClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="parent-floating-menu-content">
+        <div class="parent-floating-menu-loading" id="parentMenuLoading">
+            <div class="loading"></div>
+            <p>加载图片列表中...</p>
+        </div>
+        <ul class="parent-image-list" id="parentImageList" style="display: none;">
+            <!-- 动态加载去重的图片名称 -->
+        </ul>
+    </div>
+    <div class="parent-floating-menu-footer" id="parentMenuFooter" style="display: none;">
+        共 <span id="parentImageCount">0</span> 个去重图片名称
+    </div>
+</div>
+{% endif %}
+
+<!-- 图片查看结果区域 -->
+<div class="described-images-section" id="parentImageViewSection" style="display: none;">
+    <div class="section-header">
+        <h3><i class="fas fa-image"></i> 同名图片</h3>
+        <button class="btn btn-secondary btn-sm" id="hideParentImageView">
+            <i class="fas fa-times"></i> 隐藏
+        </button>
+    </div>
+    <div class="gallery-grid" id="parentImageViewGrid">
+        <!-- 动态加载同名图片 -->
+    </div>
+    <div class="loading-state" id="parentImageViewLoading" style="display: none;">
+        <div class="loading"></div>
+        <p>加载图片中...</p>
     </div>
 </div>
 
@@ -889,6 +1136,309 @@ document.addEventListener('DOMContentLoaded', function() {
     // 页面加载完成后渲染 markdown
     renderMarkdown();
     
+    // 图片搜索功能
+    const imageSearchInput = document.getElementById('imageSearchInput');
+    const clearImageSearchBtn = document.getElementById('clearImageSearch');
+    const imageSearchResultsSection = document.getElementById('imageSearchResultsSection');
+    const imageSearchResultsGrid = document.getElementById('imageSearchResultsGrid');
+    const imageSearchLoading = document.getElementById('imageSearchLoading');
+    const hideImageSearchResultsBtn = document.getElementById('hideImageSearchResults');
+    const sortSearchResultsByReturnBtn = document.getElementById('sortSearchResultsByReturn');
+    
+    let imageSearchResults = [];
+    let imageSearchTimeout = null;
+    
+    // 图片搜索输入事件
+    imageSearchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // 显示/隐藏清除按钮
+        if (query) {
+            clearImageSearchBtn.style.display = 'inline-block';
+        } else {
+            clearImageSearchBtn.style.display = 'none';
+            hideImageSearchResults();
+            return;
+        }
+        
+        // 防抖搜索
+        if (imageSearchTimeout) {
+            clearTimeout(imageSearchTimeout);
+        }
+        
+        imageSearchTimeout = setTimeout(() => {
+            searchImagesInSubfolders(query);
+        }, 500);
+    });
+    
+    // 清除搜索
+    clearImageSearchBtn.addEventListener('click', function() {
+        imageSearchInput.value = '';
+        this.style.display = 'none';
+        hideImageSearchResults();
+    });
+    
+    // 隐藏搜索结果
+    hideImageSearchResultsBtn.addEventListener('click', function() {
+        hideImageSearchResults();
+    });
+    
+    // 按收益率排序搜索结果
+    sortSearchResultsByReturnBtn.addEventListener('click', function() {
+        if (imageSearchResults.length > 0) {
+            sortSearchResultsByReturn();
+        }
+    });
+    
+    // 搜索子文件夹中的图片
+    function searchImagesInSubfolders(query) {
+        if (!query) return;
+        
+        imageSearchLoading.style.display = 'block';
+        imageSearchResultsSection.style.display = 'block';
+        imageSearchResultsGrid.innerHTML = '';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        fetch(`/gallery/api/search-in-subfolders/${currentFolder}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                imageSearchLoading.style.display = 'none';
+                if (data.success) {
+                    imageSearchResults = data.data;
+                    displayImageSearchResults(imageSearchResults, query);
+                } else {
+                    imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #ffc107;"></i>
+                        <h3>搜索失败</h3>
+                        <p>${data.message}</p>
+                    </div>`;
+                }
+            })
+            .catch(error => {
+                imageSearchLoading.style.display = 'none';
+                console.error('Error:', error);
+                imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #dc3545;"></i>
+                    <h3>搜索时发生错误</h3>
+                    <p>请稍后再试</p>
+                </div>`;
+            });
+    }
+    
+    // 显示图片搜索结果
+    function displayImageSearchResults(images, query) {
+        if (images.length === 0) {
+            imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i>
+                <h3>未找到匹配的图片</h3>
+                <p>关键词 "${query}" 在子文件夹中没有找到匹配的图片</p>
+            </div>`;
+            sortSearchResultsByReturnBtn.style.display = 'none';
+            return;
+        }
+        
+        // 显示排序按钮
+        sortSearchResultsByReturnBtn.style.display = 'inline-block';
+        
+        imageSearchResultsGrid.innerHTML = '';
+        
+        // 按子文件夹分组显示
+        const groupedImages = {};
+        images.forEach(image => {
+            const subfolder = image.subfolder || '未知文件夹';
+            if (!groupedImages[subfolder]) {
+                groupedImages[subfolder] = [];
+            }
+            groupedImages[subfolder].push(image);
+        });
+        
+        Object.keys(groupedImages).forEach(subfolder => {
+            // 创建子文件夹标题
+            const subfolderHeader = document.createElement('div');
+            subfolderHeader.className = 'subfolder-group-header';
+            subfolderHeader.innerHTML = `
+                <h4><i class="fas fa-folder"></i> ${subfolder} <span class="image-count">(${groupedImages[subfolder].length}张)</span></h4>
+            `;
+            subfolderHeader.style.cssText = `
+                grid-column: 1 / -1;
+                background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
+                padding: 15px 20px;
+                border-radius: 8px;
+                margin: 20px 0 10px 0;
+                border-left: 4px solid #e91e63;
+                font-size: 16px;
+                color: #2d3748;
+                box-shadow: 0 2px 4px rgba(255, 182, 193, 0.3);
+            `;
+            imageSearchResultsGrid.appendChild(subfolderHeader);
+            
+            // 显示该子文件夹中的图片
+            groupedImages[subfolder].forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                
+                // 处理描述文本
+                let description = image.description || '暂无描述';
+                description = description
+                    .replace(/</g, '&lt;')
+                    .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                    .replace(/^\s+|\s+$/g, '')
+                    .replace(/\n/g, '<br>');
+                
+                // 收益率显示
+                const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+                
+                card.innerHTML = `
+                    <div class="image-thumbnail">
+                        <object data="/gallery/serve/${image.relative_path}" 
+                                type="image/svg+xml" 
+                                class="svg-object">
+                            <img src="/gallery/serve/${image.relative_path}" 
+                                 alt="${image.name}" loading="lazy">
+                        </object>
+                    </div>
+                    <div class="image-info">
+                        <div class="image-name" title="${image.name}">${image.name}</div>
+                        <div class="image-meta">
+                            <span><i class="fas fa-folder"></i> ${subfolder}</span>
+                            <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                        </div>
+                        ${neuRetDisplay}
+                        ${image.has_description ? `<div class="image-description">
+                            <i class="fas fa-comment"></i> ${description}
+                        </div>` : ''}
+                    </div>
+                `;
+                
+                // 点击查看原图
+                card.addEventListener('click', function() {
+                    window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+                });
+                
+                imageSearchResultsGrid.appendChild(card);
+            });
+        });
+        
+        console.log(`显示了 ${images.length} 张搜索结果图片，分布在 ${Object.keys(groupedImages).length} 个子文件夹中`);
+    }
+    
+    // 隐藏图片搜索结果
+    function hideImageSearchResults() {
+        imageSearchResultsSection.style.display = 'none';
+        imageSearchInput.value = '';
+        clearImageSearchBtn.style.display = 'none';
+        imageSearchResults = [];
+        sortSearchResultsByReturnBtn.style.display = 'none';
+        
+        // 重置标题
+        const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
+        sectionHeader.innerHTML = '<i class="fas fa-search"></i> 搜索结果';
+    }
+    
+    // 按收益率排序搜索结果
+    function sortSearchResultsByReturn() {
+        if (!imageSearchResults || imageSearchResults.length === 0) return;
+        
+        // 按收益率从高到低排序
+        const sortedResults = [...imageSearchResults].sort((a, b) => {
+            const returnA = a.neu_ret || 0;
+            const returnB = b.neu_ret || 0;
+            return returnB - returnA;
+        });
+        
+        // 重新显示排序后的结果，使用全局排序模式
+        displayImageSearchResultsSorted(sortedResults, imageSearchInput.value);
+        
+        // 更新按钮文本显示已排序
+        sortSearchResultsByReturnBtn.innerHTML = '<i class="fas fa-check"></i> 已按收益率排序';
+        sortSearchResultsByReturnBtn.disabled = true;
+        
+        // 3秒后恢复按钮状态
+        setTimeout(() => {
+            sortSearchResultsByReturnBtn.innerHTML = '<i class="fas fa-chart-line"></i> 按收益率排序';
+            sortSearchResultsByReturnBtn.disabled = false;
+        }, 3000);
+    }
+    
+    // 显示全局收益率排序后的搜索结果（不分组）
+    function displayImageSearchResultsSorted(images, query) {
+        if (images.length === 0) {
+            imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i>
+                <h3>未找到匹配的图片</h3>
+                <p>关键词 "${query}" 在子文件夹中没有找到匹配的图片</p>
+            </div>`;
+            return;
+        }
+        
+        // 更新标题显示已排序
+        const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
+        sectionHeader.innerHTML = `<i class="fas fa-chart-line"></i> 搜索结果 (按收益率排序)`;
+        
+        imageSearchResultsGrid.innerHTML = '';
+        
+        // 直接显示所有图片，不分组
+        images.forEach((image, index) => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            // 处理描述文本
+            let description = image.description || '暂无描述';
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/\n/g, '<br>');
+            
+            // 收益率显示，添加排名
+            const neuRetDisplay = image.neu_ret ? 
+                `<div class="described-image-return">
+                    <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                        #${index + 1}
+                    </span>
+                    💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%
+                </div>` : 
+                `<div class="described-image-return">
+                    <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                        #${index + 1}
+                    </span>
+                    💰 无收益率数据
+                </div>`;
+            
+            card.innerHTML = `
+                <div class="image-thumbnail">
+                    <object data="/gallery/serve/${image.relative_path}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${image.relative_path}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                </div>
+                <div class="image-info">
+                    <div class="image-name" title="${image.name}">${image.name}</div>
+                    <div class="image-meta">
+                        <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                    </div>
+                    ${neuRetDisplay}
+                    ${image.has_description ? `<div class="image-description">
+                        <i class="fas fa-comment"></i> ${description}
+                    </div>` : ''}
+                </div>
+            `;
+            
+            // 点击查看原图
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+            });
+            
+            imageSearchResultsGrid.appendChild(card);
+        });
+        
+        console.log(`显示了 ${images.length} 张按收益率全局排序的搜索结果`);
+    }
+
     // 有描述图片功能
     const showDescribedImagesBtn = document.getElementById('showDescribedImages');
     const hideDescribedImagesBtn = document.getElementById('hideDescribedImages');
@@ -1020,6 +1570,220 @@ document.addEventListener('DOMContentLoaded', function() {
         
         displayDescribedImages(sortedImages);
     }
+    
+    // 父文件夹悬浮菜单功能
+    const parentFloatingBtn = document.getElementById('parentFloatingBtn');
+    const parentFloatingMenu = document.getElementById('parentFloatingMenu');
+    const parentFloatingMenuClose = document.getElementById('parentFloatingMenuClose');
+    const parentMenuLoading = document.getElementById('parentMenuLoading');
+    const parentImageList = document.getElementById('parentImageList');
+    const parentMenuFooter = document.getElementById('parentMenuFooter');
+    const parentImageCount = document.getElementById('parentImageCount');
+    const parentImageViewSection = document.getElementById('parentImageViewSection');
+    const parentImageViewGrid = document.getElementById('parentImageViewGrid');
+    const parentImageViewLoading = document.getElementById('parentImageViewLoading');
+    const hideParentImageView = document.getElementById('hideParentImageView');
+    
+    let uniqueImageNames = [];
+    
+    // 打开父文件夹悬浮菜单
+    if (parentFloatingBtn) {
+        parentFloatingBtn.addEventListener('click', function() {
+            parentFloatingMenu.classList.add('open');
+            if (uniqueImageNames.length === 0) {
+                loadUniqueImageNames();
+            }
+        });
+    }
+    
+    // 关闭父文件夹悬浮菜单
+    if (parentFloatingMenuClose) {
+        parentFloatingMenuClose.addEventListener('click', function() {
+            parentFloatingMenu.classList.remove('open');
+        });
+    }
+    
+    // 点击菜单外部关闭
+    document.addEventListener('click', function(e) {
+        if (parentFloatingMenu && parentFloatingMenu.classList.contains('open') && 
+            !parentFloatingMenu.contains(e.target) && !parentFloatingBtn.contains(e.target)) {
+            parentFloatingMenu.classList.remove('open');
+        }
+    });
+    
+    // 隐藏图片查看结果
+    if (hideParentImageView) {
+        hideParentImageView.addEventListener('click', function() {
+            parentImageViewSection.style.display = 'none';
+        });
+    }
+    
+    // 加载去重的图片名称列表
+    function loadUniqueImageNames() {
+        parentMenuLoading.style.display = 'block';
+        parentImageList.style.display = 'none';
+        parentMenuFooter.style.display = 'none';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        fetch(`/gallery/api/unique-image-names/${currentFolder}`)
+            .then(response => response.json())
+            .then(data => {
+                parentMenuLoading.style.display = 'none';
+                if (data.success) {
+                    uniqueImageNames = data.data;
+                    displayUniqueImageNames(uniqueImageNames);
+                } else {
+                    parentImageList.innerHTML = '<li style="padding: 20px; text-align: center; color: #666;">加载失败: ' + data.message + '</li>';
+                    parentImageList.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                parentMenuLoading.style.display = 'none';
+                console.error('Error:', error);
+                parentImageList.innerHTML = '<li style="padding: 20px; text-align: center; color: #666;">加载时发生错误</li>';
+                parentImageList.style.display = 'block';
+            });
+    }
+    
+    // 显示去重的图片名称列表
+    function displayUniqueImageNames(imageNames) {
+        if (imageNames.length === 0) {
+            parentImageList.innerHTML = '<li style="padding: 20px; text-align: center; color: #666;">没有找到图片</li>';
+        } else {
+            parentImageList.innerHTML = '';
+            imageNames.forEach(imageName => {
+                const listItem = document.createElement('li');
+                listItem.className = 'parent-image-list-item';
+                
+                const link = document.createElement('a');
+                link.className = 'parent-image-list-link';
+                link.href = '#';
+                link.innerHTML = `<i class="fas fa-image"></i>${imageName}`;
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    viewImagesByName(imageName);
+                });
+                
+                listItem.appendChild(link);
+                parentImageList.appendChild(listItem);
+            });
+            
+            parentImageCount.textContent = imageNames.length;
+        }
+        
+        parentImageList.style.display = 'block';
+        parentMenuFooter.style.display = 'block';
+    }
+    
+    // 根据图片名称查看所有匹配的图片
+    function viewImagesByName(imageName) {
+        parentImageViewSection.style.display = 'block';
+        parentImageViewLoading.style.display = 'block';
+        parentImageViewGrid.innerHTML = '';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        fetch(`/gallery/api/find-images-by-name/${currentFolder}?name=${encodeURIComponent(imageName)}`)
+            .then(response => response.json())
+            .then(data => {
+                parentImageViewLoading.style.display = 'none';
+                if (data.success) {
+                    displayImagesByName(data.data, imageName);
+                    // 关闭悬浮菜单
+                    parentFloatingMenu.classList.remove('open');
+                } else {
+                    parentImageViewGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #ffc107;"></i>
+                        <h3>查找失败</h3>
+                        <p>${data.message}</p>
+                    </div>`;
+                }
+            })
+            .catch(error => {
+                parentImageViewLoading.style.display = 'none';
+                console.error('Error:', error);
+                parentImageViewGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #dc3545;"></i>
+                    <h3>查找时发生错误</h3>
+                    <p>请稍后再试</p>
+                </div>`;
+            });
+    }
+    
+    // 显示同名图片
+    function displayImagesByName(images, imageName) {
+        if (images.length === 0) {
+            parentImageViewGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i>
+                <h3>未找到图片</h3>
+                <p>名称为 "${imageName}" 的图片不存在</p>
+            </div>`;
+            return;
+        }
+        
+        // 更新标题
+        const sectionHeader = parentImageViewSection.querySelector('.section-header h3');
+        sectionHeader.innerHTML = `<i class="fas fa-image"></i> "${imageName}" (${images.length}张)`;
+        
+        parentImageViewGrid.innerHTML = '';
+        
+        images.forEach(image => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            // 处理描述文本
+            let description = image.description || '暂无描述';
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/\n/g, '<br>');
+            
+            // 收益率显示
+            const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+            
+            card.innerHTML = `
+                <div class="image-thumbnail">
+                    <object data="/gallery/serve/${image.relative_path}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${image.relative_path}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                </div>
+                <div class="image-info">
+                    <div class="image-name" title="${image.name}">${image.name}</div>
+                    <div class="image-meta">
+                        <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                    </div>
+                    ${neuRetDisplay}
+                    ${image.has_description ? `<div class="image-description">
+                        <i class="fas fa-comment"></i> ${description}
+                    </div>` : ''}
+                </div>
+            `;
+            
+            // 点击查看原图
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+            });
+            
+            parentImageViewGrid.appendChild(card);
+        });
+        
+        console.log(`显示了 ${images.length} 张同名图片`);
+    }
+    
+    // ESC键关闭悬浮菜单
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (parentFloatingMenu && parentFloatingMenu.classList.contains('open')) {
+                parentFloatingMenu.classList.remove('open');
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

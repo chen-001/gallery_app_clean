@@ -330,3 +330,75 @@ def api_set_folder_description(folder_name):
             'success': False,
             'message': str(e)
         }), 500
+
+@gallery_bp.route('/api/search-in-subfolders/<path:parent_folder>')
+@login_required
+def api_search_in_subfolders(parent_folder):
+    """API: 在子文件夹中搜索图片"""
+    try:
+        query = request.args.get('q', '').strip()
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'message': '搜索关键词不能为空'
+            }), 400
+        
+        results = gallery_service.search_images_in_subfolders(parent_folder, query)
+        return jsonify({
+            'success': True,
+            'data': results,
+            'count': len(results),
+            'query': query,
+            'parent_folder': parent_folder
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@gallery_bp.route('/api/unique-image-names/<path:parent_folder>')
+@login_required
+def api_unique_image_names(parent_folder):
+    """API: 获取父文件夹下所有子文件夹中的去重图片名称"""
+    try:
+        image_names = gallery_service.get_unique_image_names_in_subfolders(parent_folder)
+        return jsonify({
+            'success': True,
+            'data': image_names,
+            'count': len(image_names),
+            'parent_folder': parent_folder
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@gallery_bp.route('/api/find-images-by-name/<path:parent_folder>')
+@login_required
+def api_find_images_by_name(parent_folder):
+    """API: 根据图片名称在所有子文件夹中查找匹配的图片"""
+    try:
+        image_name = request.args.get('name', '').strip()
+        
+        if not image_name:
+            return jsonify({
+                'success': False,
+                'message': '图片名称不能为空'
+            }), 400
+        
+        results = gallery_service.find_images_by_name_in_subfolders(parent_folder, image_name)
+        return jsonify({
+            'success': True,
+            'data': results,
+            'count': len(results),
+            'image_name': image_name,
+            'parent_folder': parent_folder
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
