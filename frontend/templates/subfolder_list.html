@@ -1289,12 +1289,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 收益率显示
                 const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
                 
+                // 对路径进行URL编码以处理中文字符
+                const encodedPath = encodeURI(image.relative_path);
+                
                 card.innerHTML = `
                     <div class="image-thumbnail">
-                        <object data="/gallery/serve/${image.relative_path}" 
+                        <object data="/gallery/serve/${encodedPath}" 
                                 type="image/svg+xml" 
                                 class="svg-object">
-                            <img src="/gallery/serve/${image.relative_path}" 
+                            <img src="/gallery/serve/${encodedPath}" 
                                  alt="${image.name}" loading="lazy">
                         </object>
                     </div>
@@ -1406,12 +1409,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     💰 无收益率数据
                 </div>`;
             
+            // 对路径进行URL编码以处理中文字符
+            const encodedPath = encodeURI(image.relative_path);
+            
             card.innerHTML = `
                 <div class="image-thumbnail">
-                    <object data="/gallery/serve/${image.relative_path}" 
+                    <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
-                        <img src="/gallery/serve/${image.relative_path}" 
+                        <img src="/gallery/serve/${encodedPath}" 
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
@@ -1430,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 点击查看原图
             card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
             });
             
             imageSearchResultsGrid.appendChild(card);
@@ -1460,13 +1466,10 @@ document.addEventListener('DOMContentLoaded', function() {
         describedImagesSection.style.display = 'none';
     });
     
-    // 按收益率排序
+    // 按收益率排序 - 跨文件夹全局排序
     sortByReturnBtn.addEventListener('click', function() {
-        if (describedImagesData.length > 0) {
-            sortImagesByReturn();
-        } else {
-            alert('请先查看有描述的图片');
-        }
+        // 显示跨文件夹收益率排序结果
+        showCrossFolderSortByReturn();
     });
     
     // 查看图片画廊按钮
@@ -1527,12 +1530,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 .replace(/^\s+|\s+$/g, '')  // 去除首尾空白
                 .replace(/\n/g, '<br>');  // 换行转HTML
             
+            // 对路径进行URL编码以处理中文字符
+            const encodedPath = encodeURI(image.relative_path);
+            
             card.innerHTML = `
                 <div class="image-thumbnail">
-                    <object data="/gallery/serve/${image.relative_path}" 
+                    <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
-                        <img src="/gallery/serve/${image.relative_path}" 
+                        <img src="/gallery/serve/${encodedPath}" 
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
@@ -1550,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 点击查看原图
             card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
             });
             
             describedImagesGrid.appendChild(card);
@@ -1569,6 +1575,121 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         displayDescribedImages(sortedImages);
+    }
+    
+    // 跨文件夹按收益率排序
+    function showCrossFolderSortByReturn() {
+        imageSearchResultsSection.style.display = 'block';
+        imageSearchLoading.style.display = 'block';
+        imageSearchResultsGrid.innerHTML = '';
+        sortSearchResultsByReturnBtn.style.display = 'none';
+        
+        // 更新标题
+        const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
+        sectionHeader.innerHTML = '<i class="fas fa-chart-line"></i> 跨文件夹收益率排序';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        fetch(`/gallery/api/images-cross-folders-by-return/${currentFolder}?per_page=100`)
+            .then(response => response.json())
+            .then(data => {
+                imageSearchLoading.style.display = 'none';
+                if (data.success) {
+                    displayCrossFolderReturnResults(data.data.images);
+                } else {
+                    imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #ffc107;"></i>
+                        <h3>排序失败</h3>
+                        <p>${data.message}</p>
+                    </div>`;
+                }
+            })
+            .catch(error => {
+                imageSearchLoading.style.display = 'none';
+                console.error('Error:', error);
+                imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #dc3545;"></i>
+                    <h3>排序时发生错误</h3>
+                    <p>请稍后再试</p>
+                </div>`;
+            });
+    }
+    
+    // 显示跨文件夹收益率排序结果
+    function displayCrossFolderReturnResults(images) {
+        if (images.length === 0) {
+            imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i>
+                <h3>暂无收益率数据</h3>
+                <p>该父文件夹下的子文件夹中没有找到收益率数据</p>
+            </div>`;
+            return;
+        }
+        
+        imageSearchResultsGrid.innerHTML = '';
+        
+        // 直接显示所有图片，按收益率排序
+        images.forEach((image, index) => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            // 处理描述文本
+            let description = image.description || '暂无描述';
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/\n/g, '<br>');
+            
+            // 收益率显示，添加排名
+            const neuRetDisplay = image.neu_ret ? 
+                `<div class="described-image-return">
+                    <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                        #${index + 1}
+                    </span>
+                    💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%
+                </div>` : 
+                `<div class="described-image-return">
+                    <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                        #${index + 1}
+                    </span>
+                    💰 无收益率数据
+                </div>`;
+            
+            // 对路径进行URL编码以处理中文字符
+            const encodedPath = encodeURI(image.relative_path);
+            
+            card.innerHTML = `
+                <div class="image-thumbnail">
+                    <object data="/gallery/serve/${encodedPath}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${encodedPath}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                </div>
+                <div class="image-info">
+                    <div class="image-name" title="${image.name}">${image.name}</div>
+                    <div class="image-meta">
+                        <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                    </div>
+                    ${neuRetDisplay}
+                    ${image.has_description ? `<div class="image-description">
+                        <i class="fas fa-comment"></i> ${description}
+                    </div>` : ''}
+                </div>
+            `;
+            
+            // 点击查看原图
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+            });
+            
+            imageSearchResultsGrid.appendChild(card);
+        });
+        
+        console.log(`显示了 ${images.length} 张按收益率跨文件夹排序的图片`);
     }
     
     // 父文件夹悬浮菜单功能
@@ -1743,12 +1864,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // 收益率显示
             const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
             
+            // 对路径进行URL编码以处理中文字符
+            const encodedPath = encodeURI(image.relative_path);
+            
             card.innerHTML = `
                 <div class="image-thumbnail">
-                    <object data="/gallery/serve/${image.relative_path}" 
+                    <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
-                        <img src="/gallery/serve/${image.relative_path}" 
+                        <img src="/gallery/serve/${encodedPath}" 
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
@@ -1767,7 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 点击查看原图
             card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
             });
             
             parentImageViewGrid.appendChild(card);

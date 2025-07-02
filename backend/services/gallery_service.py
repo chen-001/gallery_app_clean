@@ -102,7 +102,7 @@ class GalleryService:
             # 收益率排序支持
             if sort_by == 'neu_ret':
                 all_images = self._sort_by_neu_ret(folder_path, all_images)
-            elif sort_by == 'time':
+            elif sort_by == 'date' or sort_by == 'time':  # 支持date和time两种参数
                 all_images.sort(key=lambda x: x.get('date', ''), reverse=True)
             else:
                 # 默认按文件名排序
@@ -537,6 +537,10 @@ class GalleryService:
                 file_info['description'] = None
                 file_info['has_description'] = False
             
+            # 添加date字段，使用modified_at作为显示日期
+            if 'modified_at' in file_info:
+                file_info['date'] = file_info['modified_at']
+            
             return file_info
             
         except Exception as e:
@@ -726,3 +730,70 @@ class GalleryService:
             logger.error(f"收益率排序失败: {e}")
             # 如果排序失败，返回原始列表
             return images
+
+    def get_images_cross_folders_by_return(self, parent_folder: str, page: int = 1, per_page: int = 20) -> Dict:
+        """跨子文件夹按收益率排序获取图片列表"""
+        try:
+            parent_path = self.images_root / parent_folder
+            
+            if not parent_path.exists():
+                return {'images': [], 'total': 0, 'page': page, 'per_page': per_page}
+            
+            all_images = []
+            
+            # 遍历所有子文件夹
+            for subfolder in parent_path.iterdir():
+                if not subfolder.is_dir() or subfolder.name.startswith('.'):
+                    continue
+                
+                # 读取子文件夹的收益率数据
+                neu_ret_file = subfolder / 'neu_rets.json'
+                neu_ret_data = {}
+                
+                if neu_ret_file.exists():
+                    try:
+                        with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                            neu_ret_data = json.load(f)
+                    except (json.JSONDecodeError, OSError) as e:
+                        logger.warning(f"无法读取neu_rets.json文件 {neu_ret_file}: {e}")
+                
+                # 收集子文件夹中的所有图片
+                for item in subfolder.rglob('*'):
+                    if not item.is_file() or not is_image_file(item):
+                        continue
+                    
+                    image_info = self._get_image_info(item, parent_path)
+                    if image_info:
+                        # 添加子文件夹信息
+                        image_info['subfolder'] = subfolder.name
+                        subfolder_path = item.parent.relative_to(parent_path)
+                        image_info['subfolder_path'] = str(subfolder_path)
+                        image_info['parent_folder'] = parent_folder
+                        
+                        # 添加收益率信息
+                        file_key = item.name.rsplit('.', 1)[0]
+                        image_info['neu_ret'] = neu_ret_data.get(file_key, 0)
+                        
+                        all_images.append(image_info)
+            
+            # 按收益率从大到小排序
+            all_images.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
+            
+            # 分页
+            total = len(all_images)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            images = all_images[start_idx:end_idx]
+            
+            return {
+                'images': images,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'has_next': end_idx < total,
+                'has_prev': page > 1
+            }
+            
+        except Exception as e:
+            logger.error(f"跨文件夹收益率排序失败 {parent_folder}: {e}")
+            raise

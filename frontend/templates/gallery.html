@@ -729,10 +729,10 @@ kbd {
             <div class="control-group">
                 <label for="sortBy">排序方式:</label>
                 <select id="sortBy" class="form-control">
-                    <option value="name">名称</option>
-                    <option value="date">修改时间</option>
-                    <option value="size">文件大小</option>
-                    <option value="neu_ret" selected>收益率</option>
+                    <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>名称</option>
+                    <option value="date" {% if request.args.get('sort') == 'date' %}selected{% endif %}>修改时间</option>
+                    <option value="size" {% if request.args.get('sort') == 'size' %}selected{% endif %}>文件大小</option>
+                    <option value="neu_ret" {% if not request.args.get('sort') or request.args.get('sort') == 'neu_ret' %}selected{% endif %}>收益率</option>
                 </select>
                 <select id="sortOrder" class="form-control">
                     <option value="asc">升序</option>
@@ -748,6 +748,13 @@ kbd {
                     <option value="png">PNG文件</option>
                     <option value="jpg">JPG文件</option>
                 </select>
+            </div>
+            <div class="control-group">
+                <label for="searchInput">搜索图片:</label>
+                <input type="text" id="searchInput" class="form-control" placeholder="输入关键词搜索（支持空格分隔多关键词）">
+                <button id="clearSearch" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-times"></i> 清除
+                </button>
             </div>
             <div class="control-group">
                 <button id="applyFilters" class="btn btn-primary">
@@ -1225,6 +1232,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const sortBySelect = document.getElementById('sortBy');
     const sortOrderSelect = document.getElementById('sortOrder');
     const filterTypeSelect = document.getElementById('filterType');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearch');
     
     let originalImageCards = [];
     
@@ -1237,15 +1246,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyFiltersAndSort() {
         if (!galleryGrid || originalImageCards.length === 0) return;
         
-        const sortBy = sortBySelect.value;
-        const sortOrder = sortOrderSelect.value;
-        const filterType = filterTypeSelect.value;
+        const sortBy = sortBySelect ? sortBySelect.value : 'neu_ret';
+        const sortOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
+        const filterType = filterTypeSelect ? filterTypeSelect.value : 'all';
+        const searchTerm = searchInput ? searchInput.value.trim() : '';
         
-        // 如果是收益率排序，需要重新从服务器获取数据
+        // 如果是收益率排序，使用AJAX获取数据而不是重新加载页面
         if (sortBy === 'neu_ret') {
-            const currentUrl = new URL(window.location);
-            currentUrl.searchParams.set('sort', 'neu_ret');
-            window.location.href = currentUrl.toString();
+            applySortByNeuRet(filterType, sortOrder, searchTerm);
             return;
         }
         
@@ -1255,18 +1263,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const fileName = imageCard.querySelector('.image-name').textContent.toLowerCase();
             const hasDescription = imageCard.querySelector('.image-description') !== null;
             
+            // 文件类型过滤
+            let typeMatch = true;
             switch (filterType) {
                 case 'described':
-                    return hasDescription;
+                    typeMatch = hasDescription;
+                    break;
                 case 'svg':
-                    return fileName.endsWith('.svg');
+                    typeMatch = fileName.endsWith('.svg');
+                    break;
                 case 'png':
-                    return fileName.endsWith('.png');
+                    typeMatch = fileName.endsWith('.png');
+                    break;
                 case 'jpg':
-                    return fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+                    break;
                 default:
-                    return true;
+                    typeMatch = true;
             }
+            
+            // 搜索关键词过滤
+            let searchMatch = true;
+            if (searchTerm) {
+                const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+                searchMatch = keywords.every(keyword => fileName.includes(keyword));
+            }
+            
+            return typeMatch && searchMatch;
         });
         
         // 排序图片（除了收益率排序）
@@ -1279,10 +1302,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     valueB = b.querySelector('.image-name').textContent.toLowerCase();
                     break;
                 case 'date':
-                    const dateA = a.querySelector('.fa-calendar')?.parentElement?.textContent || '';
-                    const dateB = b.querySelector('.fa-calendar')?.parentElement?.textContent || '';
-                    valueA = dateA;
-                    valueB = dateB;
+                    // 从DOM中提取日期文本，去掉图标和多余空格
+                    const dateTextA = a.querySelector('.fa-calendar')?.parentElement?.textContent || '';
+                    const dateTextB = b.querySelector('.fa-calendar')?.parentElement?.textContent || '';
+                    // 提取实际日期部分，去掉前面的图标空格
+                    const cleanDateA = dateTextA.replace(/^\s*\S+\s*/, '').trim();
+                    const cleanDateB = dateTextB.replace(/^\s*\S+\s*/, '').trim();
+                    // 转换为Date对象进行比较
+                    valueA = cleanDateA ? new Date(cleanDateA) : new Date(0);
+                    valueB = cleanDateB ? new Date(cleanDateB) : new Date(0);
                     break;
                 case 'size':
                     const sizeA = a.querySelector('.fa-hdd')?.parentElement?.textContent || '';
@@ -1295,10 +1323,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     valueB = b.querySelector('.image-name').textContent.toLowerCase();
             }
             
-            if (sortOrder === 'desc') {
-                return valueB.localeCompare(valueA);
+            // 对于日期类型，使用数字比较
+            if (sortBy === 'date') {
+                if (sortOrder === 'desc') {
+                    return valueB.getTime() - valueA.getTime();
+                } else {
+                    return valueA.getTime() - valueB.getTime();
+                }
             } else {
-                return valueA.localeCompare(valueB);
+                // 对于其他类型，使用字符串比较
+                if (sortOrder === 'desc') {
+                    return valueB.localeCompare(valueA);
+                } else {
+                    return valueA.localeCompare(valueB);
+                }
             }
         });
         
@@ -1317,18 +1355,226 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetFilters() {
         if (!galleryGrid || originalImageCards.length === 0) return;
         
-        sortBySelect.value = 'name';
-        sortOrderSelect.value = 'asc';
-        filterTypeSelect.value = 'all';
+        if (sortBySelect) sortBySelect.value = 'neu_ret';
+        if (sortOrderSelect) sortOrderSelect.value = 'desc';
+        if (filterTypeSelect) filterTypeSelect.value = 'all';
+        if (searchInput) searchInput.value = '';
         
-        // 恢复原始顺序
+        // 保存重置后的偏好
+        saveUserPreferences();
+        
+        // 重新应用排序（收益率降序）
+        applyFiltersAndSort();
+    }
+    
+    // 收益率排序功能
+    function applySortByNeuRet(filterType, sortOrder, searchTerm = '') {
+        if (!galleryGrid) return;
+        
+        const folderName = window.location.pathname.split('/').pop();
+        
+        // 使用AJAX获取排序数据
+        fetch(`/gallery/api/folder/${folderName}/images?sort=neu_ret`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.images) {
+                    // 清空画廊
+                    galleryGrid.innerHTML = '';
+                    
+                    let imagesToShow = data.data.images;
+                    
+                    // 应用过滤器和搜索
+                    imagesToShow = imagesToShow.filter(image => {
+                        const fileName = image.name.toLowerCase();
+                        
+                        // 文件类型过滤
+                        let typeMatch = true;
+                        if (filterType !== 'all') {
+                            switch (filterType) {
+                                case 'described':
+                                    typeMatch = image.description && image.description.trim() !== '';
+                                    break;
+                                case 'svg':
+                                    typeMatch = fileName.endsWith('.svg');
+                                    break;
+                                case 'png':
+                                    typeMatch = fileName.endsWith('.png');
+                                    break;
+                                case 'jpg':
+                                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+                                    break;
+                                default:
+                                    typeMatch = true;
+                            }
+                        }
+                        
+                        // 搜索关键词过滤
+                        let searchMatch = true;
+                        if (searchTerm) {
+                            const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+                            searchMatch = keywords.every(keyword => fileName.includes(keyword));
+                        }
+                        
+                        return typeMatch && searchMatch;
+                    });
+                    
+                    // 应用排序顺序（收益率数据已经从后端按降序排序）
+                    if (sortOrder === 'asc') {
+                        imagesToShow.reverse();
+                    }
+                    
+                    // 重新渲染图片
+                    imagesToShow.forEach(image => {
+                        const imageCard = createImageCard(image);
+                        galleryGrid.appendChild(imageCard);
+                    });
+                    
+                    // 更新计数
+                    const subtitle = document.querySelector('.subtitle');
+                    if (subtitle && subtitle.textContent.includes('张图片')) {
+                        subtitle.textContent = `共 ${imagesToShow.length} 张图片`;
+                    }
+                    
+                    // 重新初始化懒加载
+                    initializeLazyLoading();
+                } else {
+                    console.error('Failed to fetch sorted images:', data.message);
+                    // 如果AJAX失败，回退到客户端排序
+                    console.warn('AJAX排序失败，使用客户端排序');
+                    // 将排序方式改为名称排序，避免无限循环
+                    if (sortBySelect) sortBySelect.value = 'name';
+                    // 使用现有的图片进行客户端排序
+                    applyClientSideSort(filterType, sortOrder, searchTerm);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sorted images:', error);
+                // 如果AJAX失败，回退到客户端排序
+                console.warn('网络请求失败，使用客户端排序');
+                // 将排序方式改为名称排序，避免无限循环
+                if (sortBySelect) sortBySelect.value = 'name';
+                // 使用现有的图片进行客户端排序
+                applyClientSideSort(filterType, sortOrder, searchTerm);
+            });
+    }
+    
+    // 客户端排序函数（AJAX失败时的回退方案）
+    function applyClientSideSort(filterType, sortOrder, searchTerm) {
+        if (!galleryGrid || originalImageCards.length === 0) return;
+        
+        // 过滤图片
+        let filteredCards = originalImageCards.filter(card => {
+            const imageCard = card;
+            const fileName = imageCard.querySelector('.image-name').textContent.toLowerCase();
+            const hasDescription = imageCard.querySelector('.image-description') !== null;
+            
+            // 文件类型过滤
+            let typeMatch = true;
+            switch (filterType) {
+                case 'described':
+                    typeMatch = hasDescription;
+                    break;
+                case 'svg':
+                    typeMatch = fileName.endsWith('.svg');
+                    break;
+                case 'png':
+                    typeMatch = fileName.endsWith('.png');
+                    break;
+                case 'jpg':
+                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+                    break;
+                default:
+                    typeMatch = true;
+            }
+            
+            // 搜索关键词过滤
+            let searchMatch = true;
+            if (searchTerm) {
+                const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+                searchMatch = keywords.every(keyword => fileName.includes(keyword));
+            }
+            
+            return typeMatch && searchMatch;
+        });
+        
+        // 按名称排序
+        filteredCards.sort((a, b) => {
+            const nameA = a.querySelector('.image-name').textContent.toLowerCase();
+            const nameB = b.querySelector('.image-name').textContent.toLowerCase();
+            
+            if (sortOrder === 'desc') {
+                return nameB.localeCompare(nameA);
+            } else {
+                return nameA.localeCompare(nameB);
+            }
+        });
+        
+        // 更新显示
         galleryGrid.innerHTML = '';
-        originalImageCards.forEach(card => galleryGrid.appendChild(card));
+        filteredCards.forEach(card => galleryGrid.appendChild(card));
         
-        // 恢复原始计数
+        // 更新计数
         const subtitle = document.querySelector('.subtitle');
         if (subtitle && subtitle.textContent.includes('张图片')) {
-            subtitle.textContent = `共 ${originalImageCards.length} 张图片`;
+            subtitle.textContent = `共 ${filteredCards.length} 张图片`;
+        }
+    }
+    
+    // 创建图片卡片的函数
+    function createImageCard(image) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        
+        const neuRetBadge = image.neu_ret ? 
+            `<div class="neu-ret-badge">${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+        
+        // 对路径进行URL编码以处理中文字符
+        const encodedPath = encodeURI(image.relative_path);
+        
+        card.innerHTML = `
+            <div class="image-wrapper">
+                ${neuRetBadge}
+                <img src="/gallery/serve/${encodedPath}" 
+                     alt="${image.name}" 
+                     loading="lazy"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="image-error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>图片加载失败</p>
+                </div>
+            </div>
+            <div class="image-info">
+                <div class="image-name">${image.name}</div>
+                ${image.description ? `<div class="image-description">${image.description}</div>` : ''}
+                <div class="image-meta">
+                    <span><i class="fas fa-calendar"></i> ${image.date || '未知'}</span>
+                    <span><i class="fas fa-hdd"></i> ${image.size || '未知'}</span>
+                </div>
+            </div>
+        `;
+        
+        // 添加点击查看原图事件
+        card.addEventListener('click', function() {
+            window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+        });
+        
+        return card;
+    }
+    
+    // 重新初始化懒加载的函数
+    function initializeLazyLoading() {
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        observer.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
         }
     }
     
@@ -1341,12 +1587,125 @@ document.addEventListener('DOMContentLoaded', function() {
         resetFiltersBtn.addEventListener('click', resetFilters);
     }
     
+    // 用户偏好管理
+    function saveUserPreferences() {
+        const preferences = {
+            sortBy: sortBySelect ? sortBySelect.value : 'neu_ret',
+            sortOrder: sortOrderSelect ? sortOrderSelect.value : 'desc',
+            filterType: filterTypeSelect ? filterTypeSelect.value : 'all',
+            searchTerm: searchInput ? searchInput.value : ''
+        };
+        localStorage.setItem('galleryPreferences', JSON.stringify(preferences));
+    }
+    
+    function loadUserPreferences() {
+        // 首先设置默认值
+        if (sortBySelect) sortBySelect.value = 'neu_ret';
+        if (sortOrderSelect) sortOrderSelect.value = 'desc';
+        if (filterTypeSelect) filterTypeSelect.value = 'all';
+        if (searchInput) searchInput.value = '';
+        
+        // 然后加载用户偏好设置（如果存在）
+        const saved = localStorage.getItem('galleryPreferences');
+        if (saved) {
+            try {
+                const preferences = JSON.parse(saved);
+                if (sortBySelect && preferences.sortBy) {
+                    sortBySelect.value = preferences.sortBy;
+                }
+                if (sortOrderSelect && preferences.sortOrder) {
+                    sortOrderSelect.value = preferences.sortOrder;
+                }
+                if (filterTypeSelect && preferences.filterType) {
+                    filterTypeSelect.value = preferences.filterType;
+                }
+                if (searchInput && preferences.searchTerm) {
+                    searchInput.value = preferences.searchTerm;
+                }
+            } catch (e) {
+                console.warn('Failed to load user preferences:', e);
+            }
+        }
+    }
+    
+    // 恢复用户偏好设置
+    loadUserPreferences();
+    
+    // 页面加载后确保正确的排序显示
+    setTimeout(function() {
+        if (galleryGrid && originalImageCards.length > 0) {
+            // 如果后端已经提供了按收益率排序的数据，并且当前设置也是收益率排序，则不需要重新排序
+            const currentSortBy = sortBySelect ? sortBySelect.value : 'neu_ret';
+            const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
+            
+            // 如果当前设置不是默认的收益率降序排序，或者有搜索/筛选条件，则重新应用排序
+            const saved = localStorage.getItem('galleryPreferences');
+            let shouldApplySort = false;
+            
+            if (saved) {
+                try {
+                    const preferences = JSON.parse(saved);
+                    // 检查是否有非默认的设置
+                    if (preferences.sortBy !== 'neu_ret' || 
+                        preferences.sortOrder !== 'desc' || 
+                        preferences.filterType !== 'all' || 
+                        (preferences.searchTerm && preferences.searchTerm.trim() !== '')) {
+                        shouldApplySort = true;
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse preferences for initial sort:', e);
+                }
+            }
+            
+            // 如果需要重新排序，或者当前选择不是默认值，则应用排序
+            if (shouldApplySort || currentSortBy !== 'neu_ret' || currentSortOrder !== 'desc') {
+                applyFiltersAndSort();
+            }
+        }
+    }, 100);
+    
     // 自动应用筛选（当选择改变时）
     [sortBySelect, sortOrderSelect, filterTypeSelect].forEach(select => {
         if (select) {
-            select.addEventListener('change', applyFiltersAndSort);
+            select.addEventListener('change', function() {
+                saveUserPreferences();
+                applyFiltersAndSort();
+            });
         }
     });
+    
+    // 搜索功能事件监听
+    if (searchInput) {
+        // 实时搜索（输入时延迟触发）
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                saveUserPreferences();
+                applyFiltersAndSort();
+            }, 300); // 300ms延迟
+        });
+        
+        // 回车键搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                saveUserPreferences();
+                applyFiltersAndSort();
+            }
+        });
+    }
+    
+    // 清除搜索按钮
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            if (searchInput) {
+                searchInput.value = '';
+                saveUserPreferences();
+                applyFiltersAndSort();
+            }
+        });
+    }
     
     // 简单的图片懒加载和缓存
     const images = document.querySelectorAll('img[loading="lazy"]');

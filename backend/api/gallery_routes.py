@@ -89,7 +89,7 @@ def gallery_page(folder_name):
         if not folder_info:
             abort(404)
         
-        # 获取排序参数
+        # 获取排序参数，首次访问默认收益率排序
         sort_by = request.args.get('sort', 'neu_ret')
         # 显示所有图片，不分页
         images = gallery_service.get_image_list(folder_name, page=1, per_page=10000, sort_by=sort_by)
@@ -395,6 +395,26 @@ def api_find_images_by_name(parent_folder):
             'data': results,
             'count': len(results),
             'image_name': image_name,
+            'parent_folder': parent_folder
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@gallery_bp.route('/api/images-cross-folders-by-return/<path:parent_folder>')
+@login_required
+def api_images_cross_folders_by_return(parent_folder):
+    """API: 跨子文件夹按收益率排序获取图片列表"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)  # 跨文件夹查询默认更多图片
+        
+        result = gallery_service.get_images_cross_folders_by_return(parent_folder, page, per_page)
+        return jsonify({
+            'success': True,
+            'data': result,
             'parent_folder': parent_folder
         })
     except Exception as e:
