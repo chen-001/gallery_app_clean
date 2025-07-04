@@ -358,13 +358,33 @@ kbd {
 
 .described-image-preview {
     width: 100%;
-    height: 800px;
+    height: 600px;
     background: linear-gradient(135deg, #fef8fa 0%, #fdeef2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
+}
+
+.gallery-grid.full-width .described-image-preview {
+    height: 800px;
+}
+
+.gallery-grid.full-width .image-thumbnail {
+    height: 800px;
+}
+
+.gallery-grid.full-width .image-card {
+    max-width: 100%;
+    width: 100%;
+}
+
+.gallery-grid.full-width .image-thumbnail .svg-object,
+.gallery-grid.full-width .image-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .described-image-preview img {
@@ -424,6 +444,96 @@ kbd {
     border-left: 3px solid #ff69b4;
 }
 
+/* 图片卡片样式 (用于搜索结果) */
+.image-card {
+    background: linear-gradient(135deg, #fff5f8 0%, #ffe8f0 100%);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 182, 193, 0.2);
+    cursor: pointer;
+    max-width: 300px;
+    width: 100%;
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.4);
+}
+
+.image-thumbnail {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #fef8fa 0%, #fdeef2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.image-thumbnail .svg-object,
+.image-thumbnail img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.image-info {
+    padding: 15px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.image-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    word-break: break-all;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.image-meta {
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.image-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.image-description {
+    color: #555;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255, 182, 193, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #ff69b4;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 25px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.gallery-grid.multi-column {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .described-images-grid {
@@ -433,6 +543,16 @@ kbd {
     
     .described-image-preview {
         height: 600px;
+    }
+    
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .image-thumbnail {
+        height: 150px;
     }
 }
 
@@ -604,6 +724,128 @@ kbd {
     margin-bottom: 15px;
 }
 
+/* 子文件夹选择面板样式 */
+.subfolder-select-panel {
+    background: linear-gradient(135deg, #f8fff9 0%, #e6f9ea 100%);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    border-radius: 8px;
+    margin: 15px 0;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+    overflow: hidden;
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h4 {
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.panel-controls .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.subfolder-checkboxes {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.subfolder-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.subfolder-checkbox:hover {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.4);
+}
+
+.subfolder-checkbox input[type="checkbox"] {
+    margin: 0;
+    scale: 1.2;
+    accent-color: #28a745;
+}
+
+.subfolder-checkbox label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #2d3748;
+    font-weight: 500;
+    flex: 1;
+}
+
+.subfolder-checkbox.checked {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+}
+
+/* 视图切换按钮样式 */
+.view-toggle-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    align-items: center;
+}
+
+.view-toggle-buttons label {
+    font-weight: 500;
+    color: #2d3748;
+    margin-right: 10px;
+}
+
+.view-toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-toggle-btn:hover {
+    background: #f8f9fa;
+    border-color: #e91e63;
+}
+
+.view-toggle-btn.active {
+    background: linear-gradient(135deg, #e91e63 0%, #ff69b4 100%);
+    color: white;
+    border-color: #e91e63;
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
     .parent-floating-menu {
@@ -616,6 +858,15 @@ kbd {
         width: 50px;
         height: 50px;
         font-size: 16px;
+    }
+    
+    .subfolder-checkboxes {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+    
+    .panel-controls {
+        flex-wrap: wrap;
     }
 }
 </style>
@@ -657,11 +908,28 @@ kbd {
                 <i class="fas fa-search search-icon"></i>
             </div>
             <div class="search-container">
-                <input type="text" id="imageSearchInput" class="search-input" placeholder="搜索子文件夹中的图片... (支持多关键词，用空格分隔)">
+                <input type="text" id="imageSearchInput" class="search-input" placeholder="搜索子文件夹中的图片... (支持多关键词，用空格分隔，支持no:屏蔽关键词)">
                 <i class="fas fa-image search-icon"></i>
                 <button class="btn btn-secondary btn-sm" id="clearImageSearch" style="display: none;">
                     <i class="fas fa-times"></i> 清除
                 </button>
+                <button class="btn btn-info btn-sm" id="toggleSubfolderSelect" style="margin-left: 10px;">
+                    <i class="fas fa-filter"></i> 选择范围
+                </button>
+            </div>
+            <!-- 子文件夹选择面板 -->
+            <div class="subfolder-select-panel" id="subfolderSelectPanel" style="display: none;">
+                <div class="panel-header">
+                    <h4><i class="fas fa-filter"></i> 选择搜索范围</h4>
+                    <div class="panel-controls">
+                        <button class="btn btn-success btn-sm" id="selectAllSubfolders">全选</button>
+                        <button class="btn btn-warning btn-sm" id="deselectAllSubfolders">全不选</button>
+                        <button class="btn btn-secondary btn-sm" id="closeSubfolderSelect">关闭</button>
+                    </div>
+                </div>
+                <div class="subfolder-checkboxes" id="subfolderCheckboxes">
+                    <!-- 动态加载子文件夹复选框 -->
+                </div>
             </div>
             <div class="action-buttons">
                 <button class="btn btn-primary btn-sm" id="goToGallery">
@@ -719,7 +987,17 @@ kbd {
                 </button>
             </div>
         </div>
-        <div class="gallery-grid" id="imageSearchResultsGrid">
+        <!-- 视图切换控件 -->
+        <div class="view-toggle-buttons" id="searchResultsViewToggle" style="display: none; padding: 0 25px;">
+            <label>显示模式:</label>
+            <button class="view-toggle-btn active" id="singleColumnView">
+                <i class="fas fa-align-justify"></i> 单列宽图
+            </button>
+            <button class="view-toggle-btn" id="multiColumnView">
+                <i class="fas fa-th"></i> 多列小图
+            </button>
+        </div>
+        <div class="gallery-grid full-width" id="imageSearchResultsGrid">
             <!-- 动态加载搜索结果 -->
         </div>
         <div class="loading-state" id="imageSearchLoading" style="display: none;">
@@ -1145,8 +1423,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const hideImageSearchResultsBtn = document.getElementById('hideImageSearchResults');
     const sortSearchResultsByReturnBtn = document.getElementById('sortSearchResultsByReturn');
     
+    // 子文件夹选择功能
+    const toggleSubfolderSelectBtn = document.getElementById('toggleSubfolderSelect');
+    const subfolderSelectPanel = document.getElementById('subfolderSelectPanel');
+    const subfolderCheckboxes = document.getElementById('subfolderCheckboxes');
+    const selectAllSubfoldersBtn = document.getElementById('selectAllSubfolders');
+    const deselectAllSubfoldersBtn = document.getElementById('deselectAllSubfolders');
+    const closeSubfolderSelectBtn = document.getElementById('closeSubfolderSelect');
+    
+    // 视图切换功能
+    const searchResultsViewToggle = document.getElementById('searchResultsViewToggle');
+    const singleColumnViewBtn = document.getElementById('singleColumnView');
+    const multiColumnViewBtn = document.getElementById('multiColumnView');
+    
     let imageSearchResults = [];
     let imageSearchTimeout = null;
+    let selectedSubfolders = [];  // 存储选中的子文件夹
+    let availableSubfolders = {{ subfolders | tojson }};  // 获取所有可用的子文件夹
+    
+    // 日期格式化函数
+    function formatDate(dateString) {
+        if (!dateString) return '未知日期';
+        
+        try {
+            // 尝试解析不同格式的日期
+            let date;
+            if (dateString.includes('T')) {
+                // ISO格式
+                date = new Date(dateString);
+            } else if (dateString.includes('-')) {
+                // 简单的日期格式 YYYY-MM-DD
+                date = new Date(dateString);
+            } else {
+                // 时间戳
+                date = new Date(parseInt(dateString));
+            }
+            
+            if (isNaN(date.getTime())) {
+                return '未知日期';
+            }
+            
+            return date.toLocaleDateString('zh-CN');
+        } catch (e) {
+            console.warn('日期解析失败:', dateString, e);
+            return '未知日期';
+        }
+    }
     
     // 图片搜索输入事件
     imageSearchInput.addEventListener('input', function() {
@@ -1190,6 +1512,144 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // 子文件夹选择功能
+    toggleSubfolderSelectBtn.addEventListener('click', function() {
+        if (subfolderSelectPanel.style.display === 'none') {
+            showSubfolderSelectPanel();
+        } else {
+            hideSubfolderSelectPanel();
+        }
+    });
+    
+    closeSubfolderSelectBtn.addEventListener('click', function() {
+        hideSubfolderSelectPanel();
+    });
+    
+    selectAllSubfoldersBtn.addEventListener('click', function() {
+        selectAllSubfolders();
+    });
+    
+    deselectAllSubfoldersBtn.addEventListener('click', function() {
+        deselectAllSubfolders();
+    });
+    
+    // 视图切换功能
+    singleColumnViewBtn.addEventListener('click', function() {
+        switchToSingleColumnView();
+    });
+    
+    multiColumnViewBtn.addEventListener('click', function() {
+        switchToMultiColumnView();
+    });
+    
+    // 子文件夹选择功能实现
+    function showSubfolderSelectPanel() {
+        subfolderSelectPanel.style.display = 'block';
+        generateSubfolderCheckboxes();
+        toggleSubfolderSelectBtn.innerHTML = '<i class="fas fa-filter"></i> 关闭选择';
+    }
+    
+    function hideSubfolderSelectPanel() {
+        subfolderSelectPanel.style.display = 'none';
+        toggleSubfolderSelectBtn.innerHTML = '<i class="fas fa-filter"></i> 选择范围';
+    }
+    
+    function generateSubfolderCheckboxes() {
+        subfolderCheckboxes.innerHTML = '';
+        
+        if (!availableSubfolders || availableSubfolders.length === 0) {
+            subfolderCheckboxes.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">没有可选择的子文件夹</p>';
+            return;
+        }
+        
+        // 如果没有选中任何子文件夹，默认全选
+        if (selectedSubfolders.length === 0) {
+            selectedSubfolders = availableSubfolders.map(f => f.name);
+        }
+        
+        availableSubfolders.forEach(subfolder => {
+            const checkboxDiv = document.createElement('div');
+            checkboxDiv.className = 'subfolder-checkbox';
+            if (selectedSubfolders.includes(subfolder.name)) {
+                checkboxDiv.classList.add('checked');
+            }
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `subfolder_${subfolder.name}`;
+            checkbox.value = subfolder.name;
+            checkbox.checked = selectedSubfolders.includes(subfolder.name);
+            
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = `${subfolder.name} (${subfolder.image_count || 0}张)`;
+            
+            checkboxDiv.appendChild(checkbox);
+            checkboxDiv.appendChild(label);
+            
+            // 点击事件
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    if (!selectedSubfolders.includes(this.value)) {
+                        selectedSubfolders.push(this.value);
+                    }
+                    checkboxDiv.classList.add('checked');
+                } else {
+                    selectedSubfolders = selectedSubfolders.filter(name => name !== this.value);
+                    checkboxDiv.classList.remove('checked');
+                }
+                updateSearchIfNeeded();
+            });
+            
+            // 整个区域点击切换
+            checkboxDiv.addEventListener('click', function(e) {
+                if (e.target !== checkbox) {
+                    checkbox.click();
+                }
+            });
+            
+            subfolderCheckboxes.appendChild(checkboxDiv);
+        });
+    }
+    
+    function selectAllSubfolders() {
+        selectedSubfolders = availableSubfolders.map(f => f.name);
+        generateSubfolderCheckboxes();
+        updateSearchIfNeeded();
+    }
+    
+    function deselectAllSubfolders() {
+        selectedSubfolders = [];
+        generateSubfolderCheckboxes();
+        updateSearchIfNeeded();
+    }
+    
+    function updateSearchIfNeeded() {
+        const query = imageSearchInput.value.trim();
+        if (query) {
+            // 重新搜索
+            clearTimeout(imageSearchTimeout);
+            imageSearchTimeout = setTimeout(() => {
+                searchImagesInSubfolders(query);
+            }, 300);
+        }
+    }
+    
+    // 视图切换功能实现
+    function switchToSingleColumnView() {
+        singleColumnViewBtn.classList.add('active');
+        multiColumnViewBtn.classList.remove('active');
+        imageSearchResultsGrid.classList.remove('multi-column');
+        imageSearchResultsGrid.classList.add('full-width');
+    }
+    
+    function switchToMultiColumnView() {
+        multiColumnViewBtn.classList.add('active');
+        singleColumnViewBtn.classList.remove('active');
+        imageSearchResultsGrid.classList.add('multi-column');
+        imageSearchResultsGrid.classList.remove('full-width');
+    }
+    
     // 搜索子文件夹中的图片
     function searchImagesInSubfolders(query) {
         if (!query) return;
@@ -1197,16 +1657,38 @@ document.addEventListener('DOMContentLoaded', function() {
         imageSearchLoading.style.display = 'block';
         imageSearchResultsSection.style.display = 'block';
         imageSearchResultsGrid.innerHTML = '';
+        searchResultsViewToggle.style.display = 'flex';
         
         const currentFolder = '{{ folder_name }}';
         
-        fetch(`/gallery/api/search-in-subfolders/${currentFolder}?q=${encodeURIComponent(query)}`)
+        // 判断是否有子文件夹，如果有则搜索子文件夹，否则搜索当前文件夹
+        const hasSubfolders = {{ 'true' if subfolders and subfolders|length > 0 else 'false' }};
+        
+        let searchUrl;
+        if (hasSubfolders && selectedSubfolders.length > 0) {
+            // 构建选中子文件夹的搜索URL
+            const selectedFoldersParam = selectedSubfolders.map(name => encodeURIComponent(name)).join(',');
+            searchUrl = `/gallery/api/search-in-selected-subfolders/${currentFolder}?q=${encodeURIComponent(query)}&subfolders=${selectedFoldersParam}`;
+        } else if (hasSubfolders) {
+            // 有子文件夹，搜索所有子文件夹
+            searchUrl = `/gallery/api/search-in-subfolders/${currentFolder}?q=${encodeURIComponent(query)}`;
+        } else {
+            // 没有子文件夹，搜索当前文件夹内的文件
+            searchUrl = `/gallery/api/search?q=${encodeURIComponent(query)}&folder=${encodeURIComponent(currentFolder)}&type=image`;
+        }
+        
+        fetch(searchUrl)
             .then(response => response.json())
             .then(data => {
                 imageSearchLoading.style.display = 'none';
                 if (data.success) {
-                    imageSearchResults = data.data;
-                    displayImageSearchResults(imageSearchResults, query);
+                    if (hasSubfolders) {
+                        imageSearchResults = data.data;
+                        displayImageSearchResults(imageSearchResults, query);
+                    } else {
+                        imageSearchResults = data.data;
+                        displayCurrentFolderSearchResults(imageSearchResults, query);
+                    }
                 } else {
                     imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #ffc107;"></i>
@@ -1305,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="image-name" title="${image.name}">${image.name}</div>
                         <div class="image-meta">
                             <span><i class="fas fa-folder"></i> ${subfolder}</span>
-                            <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                            <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
                         </div>
                         ${neuRetDisplay}
                         ${image.has_description ? `<div class="image-description">
@@ -1326,6 +1808,79 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`显示了 ${images.length} 张搜索结果图片，分布在 ${Object.keys(groupedImages).length} 个子文件夹中`);
     }
     
+    // 显示当前文件夹搜索结果
+    function displayCurrentFolderSearchResults(images, query) {
+        if (images.length === 0) {
+            imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i>
+                <h3>未找到匹配的图片</h3>
+                <p>关键词 "${query}" 在当前文件夹中没有找到匹配的图片</p>
+            </div>`;
+            sortSearchResultsByReturnBtn.style.display = 'none';
+            return;
+        }
+        
+        // 显示排序按钮
+        sortSearchResultsByReturnBtn.style.display = 'inline-block';
+        
+        imageSearchResultsGrid.innerHTML = '';
+        
+        // 更新标题显示搜索结果
+        const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
+        sectionHeader.innerHTML = `<i class="fas fa-search"></i> 当前文件夹搜索结果`;
+        
+        // 直接显示所有图片
+        images.forEach(image => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            
+            // 处理描述文本
+            let description = image.description || '暂无描述';
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/\n/g, '<br>');
+            
+            // 收益率显示
+            const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+            
+            // 对路径进行URL编码以处理中文字符
+            const encodedPath = encodeURI(image.relative_path);
+            
+            card.innerHTML = `
+                <div class="image-thumbnail">
+                    <object data="/gallery/serve/${encodedPath}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${encodedPath}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                </div>
+                <div class="image-info">
+                    <div class="image-name" title="${image.name}">${image.name}</div>
+                    <div class="image-meta">
+                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
+                        <span><i class="fas fa-hdd"></i> ${(image.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    ${neuRetDisplay}
+                    ${image.description && image.description.trim() ? `<div class="image-description">
+                        <i class="fas fa-comment"></i> ${description}
+                    </div>` : ''}
+                </div>
+            `;
+            
+            // 点击查看原图
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+            });
+            
+            imageSearchResultsGrid.appendChild(card);
+        });
+        
+        console.log(`显示了 ${images.length} 张当前文件夹搜索结果图片`);
+    }
+    
     // 隐藏图片搜索结果
     function hideImageSearchResults() {
         imageSearchResultsSection.style.display = 'none';
@@ -1333,6 +1888,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearImageSearchBtn.style.display = 'none';
         imageSearchResults = [];
         sortSearchResultsByReturnBtn.style.display = 'none';
+        searchResultsViewToggle.style.display = 'none';
         
         // 重置标题
         const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
@@ -1425,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="image-name" title="${image.name}">${image.name}</div>
                     <div class="image-meta">
                         <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
-                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
                     </div>
                     ${neuRetDisplay}
                     ${image.has_description ? `<div class="image-description">
@@ -1672,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="image-name" title="${image.name}">${image.name}</div>
                     <div class="image-meta">
                         <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
-                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
                     </div>
                     ${neuRetDisplay}
                     ${image.has_description ? `<div class="image-description">
@@ -1880,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="image-name" title="${image.name}">${image.name}</div>
                     <div class="image-meta">
                         <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
-                        <span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
                     </div>
                     ${neuRetDisplay}
                     ${image.has_description ? `<div class="image-description">

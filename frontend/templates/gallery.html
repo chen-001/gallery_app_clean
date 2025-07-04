@@ -1520,6 +1520,148 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // 服务器端搜索函数
+    function performServerSearch(query) {
+        if (!galleryGrid) return;
+        
+        // 显示加载状态
+        galleryGrid.innerHTML = '<div class="loading-state"><div class="loading"></div><p>搜索中...</p></div>';
+        
+        const currentFolder = '{{ folder_name }}';
+        
+        fetch(`/gallery/api/search-in-folder/${currentFolder}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displaySearchResults(data.data, query);
+                } else {
+                    galleryGrid.innerHTML = `<div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                        <h3>搜索失败</h3>
+                        <p>${data.message}</p>
+                    </div>`;
+                }
+            })
+            .catch(error => {
+                console.error('搜索请求失败:', error);
+                galleryGrid.innerHTML = `<div class="empty-state">
+                    <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                    <h3>搜索时发生错误</h3>
+                    <p>请稍后再试</p>
+                </div>`;
+            });
+    }
+    
+    // 显示搜索结果
+    function displaySearchResults(images, query) {
+        if (!galleryGrid) return;
+        
+        if (images.length === 0) {
+            galleryGrid.innerHTML = `<div class="empty-state">
+                <i class="fas fa-search" style="color: #ddd;"></i>
+                <h3>未找到匹配的图片</h3>
+                <p>关键词 "${query}" 在该文件夹中没有找到匹配的图片</p>
+            </div>`;
+            
+            // 更新计数
+            const subtitle = document.querySelector('.subtitle');
+            if (subtitle) {
+                subtitle.textContent = `搜索结果: 0 张图片`;
+            }
+            return;
+        }
+        
+        // 清空画廊并显示搜索结果
+        galleryGrid.innerHTML = '';
+        
+        images.forEach((image, index) => {
+            const card = createImageCardFromSearchResult(image, index + 1);
+            galleryGrid.appendChild(card);
+        });
+        
+        // 更新计数
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle) {
+            subtitle.textContent = `搜索结果: ${images.length} 张图片 (关键词: "${query}")`;
+        }
+        
+        // 重新初始化懒加载
+        initializeLazyLoading();
+        
+        console.log(`显示了 ${images.length} 张搜索结果图片`);
+    }
+    
+    // 从搜索结果创建图片卡片
+    function createImageCardFromSearchResult(image, cardIndex) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        card.id = `image-${cardIndex}`;
+        
+        // 处理描述文本
+        let description = image.description || '';
+        if (description) {
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
+        
+        // 收益率显示
+        const neuRetDisplay = image.neu_ret ? 
+            `<span><i class="fas fa-chart-line"></i> 收益率: ${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
+        
+        // 对路径进行URL编码以处理中文字符
+        const encodedPath = encodeURI(image.relative_path);
+        
+        card.innerHTML = `
+            <div class="image-thumbnail">
+                ${image.extension === '.svg' ? `
+                    <object data="/gallery/serve/${encodedPath}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${encodedPath}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                ` : `
+                    <img src="/gallery/serve/${encodedPath}" 
+                         alt="${image.name}" 
+                         loading="lazy">
+                `}
+            </div>
+            <div class="image-info">
+                <div class="image-name">${image.name}</div>
+                <div class="image-meta">
+                    ${neuRetDisplay}
+                    ${image.size ? `<span><i class="fas fa-hdd"></i> ${image.size}</span>` : ''}
+                    ${image.width && image.height ? `<span><i class="fas fa-expand-arrows-alt"></i> ${image.width}×${image.height}</span>` : ''}
+                    ${image.date ? `<span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>` : ''}
+                </div>
+                ${description ? `<div class="image-description"><i class="fas fa-comment"></i> ${description}</div>` : ''}
+                <div class="image-actions">
+                    <a href="/gallery/viewer/${image.relative_path}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <button class="btn btn-info btn-edit-desc" 
+                            data-folder="{{ folder_name }}" 
+                            data-filename="${image.name}"
+                            data-description="${image.description || ''}">
+                        <i class="fas fa-edit"></i> 描述
+                    </button>
+                    <a href="/gallery/serve/${image.relative_path}" class="btn btn-secondary" download>
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                    <button class="btn btn-danger btn-delete" 
+                            data-filename="${image.name}"
+                            data-filepath="${image.relative_path}">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
     // 创建图片卡片的函数
     function createImageCard(image) {
         const card = document.createElement('div');
@@ -1680,18 +1822,32 @@ document.addEventListener('DOMContentLoaded', function() {
         let searchTimeout;
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
+            const query = this.value.trim();
+            
+            // 如果搜索框为空，恢复原始数据并应用排序
+            if (!query) {
                 saveUserPreferences();
                 applyFiltersAndSort();
-            }, 300); // 300ms延迟
+                return;
+            }
+            
+            // 延迟搜索以避免频繁请求
+            searchTimeout = setTimeout(function() {
+                performServerSearch(query);
+            }, 500); // 500ms延迟
         });
         
         // 回车键搜索
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 clearTimeout(searchTimeout);
-                saveUserPreferences();
-                applyFiltersAndSort();
+                const query = this.value.trim();
+                if (query) {
+                    performServerSearch(query);
+                } else {
+                    saveUserPreferences();
+                    applyFiltersAndSort();
+                }
             }
         });
     }
@@ -1702,9 +1858,34 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchInput) {
                 searchInput.value = '';
                 saveUserPreferences();
-                applyFiltersAndSort();
+                
+                // 恢复原始画廊显示
+                restoreOriginalGallery();
             }
         });
+    }
+    
+    // 恢复原始画廊显示
+    function restoreOriginalGallery() {
+        if (!galleryGrid || originalImageCards.length === 0) {
+            // 如果没有原始数据，重新加载页面
+            location.reload();
+            return;
+        }
+        
+        // 恢复原始图片显示
+        galleryGrid.innerHTML = '';
+        originalImageCards.forEach(card => galleryGrid.appendChild(card));
+        
+        // 恢复原始计数
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle) {
+            const originalCount = originalImageCards.length;
+            subtitle.textContent = `共 ${originalCount} 张图片`;
+        }
+        
+        // 重新应用当前的排序和筛选设置（除了搜索）
+        applyFiltersAndSort();
     }
     
     // 简单的图片懒加载和缓存

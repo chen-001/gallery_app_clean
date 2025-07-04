@@ -183,6 +183,33 @@ def api_search():
             'message': str(e)
         }), 500
 
+@gallery_bp.route('/api/search-in-folder/<path:folder_name>')
+@login_required
+def api_search_in_folder(folder_name):
+    """API: 在指定文件夹中搜索图片"""
+    try:
+        query = request.args.get('q', '').strip()
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'message': '搜索关键词不能为空'
+            }), 400
+        
+        results = gallery_service.search_images_in_folder(folder_name, query)
+        return jsonify({
+            'success': True,
+            'data': results,
+            'count': len(results),
+            'query': query,
+            'folder': folder_name
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
 @gallery_bp.route('/api/folder/<path:folder_name>/delete', methods=['POST'])
 @login_required
 def api_delete_files(folder_name):
@@ -416,6 +443,50 @@ def api_images_cross_folders_by_return(parent_folder):
             'success': True,
             'data': result,
             'parent_folder': parent_folder
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@gallery_bp.route('/api/search-in-selected-subfolders/<path:parent_folder>')
+@login_required
+def api_search_in_selected_subfolders(parent_folder):
+    """API: 在选中的子文件夹中搜索图片"""
+    try:
+        query = request.args.get('q', '').strip()
+        subfolders_param = request.args.get('subfolders', '').strip()
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'message': '搜索关键词不能为空'
+            }), 400
+        
+        if not subfolders_param:
+            return jsonify({
+                'success': False,
+                'message': '没有选择子文件夹'
+            }), 400
+        
+        # 解析选中的子文件夹
+        selected_subfolders = [name.strip() for name in subfolders_param.split(',') if name.strip()]
+        
+        if not selected_subfolders:
+            return jsonify({
+                'success': False,
+                'message': '没有有效的子文件夹选择'
+            }), 400
+        
+        results = gallery_service.search_images_in_selected_subfolders(parent_folder, query, selected_subfolders)
+        return jsonify({
+            'success': True,
+            'data': results,
+            'count': len(results),
+            'query': query,
+            'parent_folder': parent_folder,
+            'selected_subfolders': selected_subfolders
         })
     except Exception as e:
         return jsonify({

@@ -197,8 +197,88 @@ class GalleryService:
             logger.error(f"搜索文件失败 {query}: {e}")
             raise
 
+    def search_images_in_folder(self, folder_name: str, query: str) -> List[Dict]:
+        """在指定文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
+        try:
+            results = []
+            folder_path = self.images_root / folder_name
+            
+            if not folder_path.exists():
+                return results
+            
+            # 解析查询字符串，支持屏蔽关键词语法 no:keyword
+            include_keywords = []
+            exclude_keywords = []
+            
+            for kw in query.split():
+                kw = kw.strip()
+                if not kw:
+                    continue
+                if kw.startswith('no:'):
+                    # 屏蔽关键词
+                    exclude_keyword = kw[3:].lower()
+                    if exclude_keyword:
+                        exclude_keywords.append(exclude_keyword)
+                else:
+                    # 包含关键词
+                    include_keywords.append(kw.lower())
+            
+            if not include_keywords:
+                return results
+            
+            # 遍历文件夹中的所有图片
+            for item in folder_path.rglob('*'):
+                if not item.is_file() or not is_image_file(item):
+                    continue
+                
+                # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
+                filename_lower = item.name.lower()
+                if (all(keyword in filename_lower for keyword in include_keywords) and 
+                    not any(keyword in filename_lower for keyword in exclude_keywords)):
+                    relative_path = item.relative_to(self.images_root)
+                    file_info = get_file_info(item)
+                    if file_info:
+                        file_info['relative_path'] = str(relative_path)
+                        file_info['folder'] = folder_name
+                        
+                        # 添加图片描述信息
+                        try:
+                            folder_relative = str(item.parent.relative_to(self.images_root))
+                            description = self.get_image_description(folder_relative, item.name)
+                            file_info['description'] = description
+                            file_info['has_description'] = description is not None and description.strip() != ""
+                        except Exception as e:
+                            logger.debug(f"获取图片描述失败 {item}: {e}")
+                            file_info['description'] = None
+                            file_info['has_description'] = False
+                        
+                        # 添加收益率信息
+                        try:
+                            neu_ret_file = item.parent / 'neu_rets.json'
+                            if neu_ret_file.exists():
+                                with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                                    neu_ret_data = json.load(f)
+                                    file_key = item.name.rsplit('.', 1)[0]
+                                    file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
+                            else:
+                                file_info['neu_ret'] = 0
+                        except Exception:
+                            file_info['neu_ret'] = 0
+                        
+                        # 添加匹配的关键词信息，用于排序
+                        file_info['matched_keywords'] = include_keywords
+                        results.append(file_info)
+            
+            # 按收益率降序排序
+            results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
+            return results[:100]  # 限制结果数量
+            
+        except Exception as e:
+            logger.error(f"在文件夹中搜索图片失败 {folder_name}, {query}: {e}")
+            raise
+
     def search_images_in_subfolders(self, parent_folder: str, query: str) -> List[Dict]:
-        """在指定父文件夹的所有子文件夹中搜索图片，支持多关键词AND搜索"""
+        """在指定父文件夹的所有子文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
         try:
             results = []
             parent_path = self.images_root / parent_folder
@@ -206,9 +286,24 @@ class GalleryService:
             if not parent_path.exists():
                 return results
             
-            # 支持多关键词搜索：按空格分割关键词，所有关键词都必须匹配
-            keywords = [kw.lower().strip() for kw in query.split() if kw.strip()]
-            if not keywords:
+            # 解析查询字符串，支持屏蔽关键词语法 no:keyword
+            include_keywords = []
+            exclude_keywords = []
+            
+            for kw in query.split():
+                kw = kw.strip()
+                if not kw:
+                    continue
+                if kw.startswith('no:'):
+                    # 屏蔽关键词
+                    exclude_keyword = kw[3:].lower()
+                    if exclude_keyword:
+                        exclude_keywords.append(exclude_keyword)
+                else:
+                    # 包含关键词
+                    include_keywords.append(kw.lower())
+            
+            if not include_keywords:
                 return results
             
             # 遍历所有子文件夹
@@ -221,9 +316,10 @@ class GalleryService:
                     if not item.is_file() or not is_image_file(item):
                         continue
                     
-                    # 多关键词匹配：文件名必须包含所有关键词
+                    # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
                     filename_lower = item.name.lower()
-                    if all(keyword in filename_lower for keyword in keywords):
+                    if (all(keyword in filename_lower for keyword in include_keywords) and 
+                        not any(keyword in filename_lower for keyword in exclude_keywords)):
                         relative_path = item.relative_to(self.images_root)
                         file_info = get_file_info(item)
                         if file_info:
@@ -259,17 +355,11 @@ class GalleryService:
                                 file_info['neu_ret'] = 0
                             
                             # 添加匹配的关键词信息，用于排序
-                            file_info['matched_keywords'] = keywords
+                            file_info['matched_keywords'] = include_keywords
                             results.append(file_info)
             
-            # 按相关性排序：先按子文件夹分组，再按匹配度排序
-            def calculate_relevance(x):
-                filename_lower = x['name'].lower()
-                # 计算所有关键词在文件名中的位置，位置越靠前越相关
-                total_position = sum(filename_lower.find(kw) for kw in keywords if kw in filename_lower)
-                return (x['subfolder'], total_position)
-            
-            results.sort(key=calculate_relevance)
+            # 按收益率降序排序
+            results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
             return results[:100]  # 限制结果数量
             
         except Exception as e:
@@ -796,4 +886,94 @@ class GalleryService:
             
         except Exception as e:
             logger.error(f"跨文件夹收益率排序失败 {parent_folder}: {e}")
+            raise
+
+    def search_images_in_selected_subfolders(self, parent_folder: str, query: str, selected_subfolders: List[str]) -> List[Dict]:
+        """在指定父文件夹的选中子文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
+        try:
+            results = []
+            parent_path = self.images_root / parent_folder
+            
+            if not parent_path.exists():
+                return results
+            
+            # 解析查询字符串，支持屏蔽关键词语法 no:keyword
+            include_keywords = []
+            exclude_keywords = []
+            
+            for kw in query.split():
+                kw = kw.strip()
+                if not kw:
+                    continue
+                if kw.startswith('no:'):
+                    # 屏蔽关键词
+                    exclude_keyword = kw[3:].lower()
+                    if exclude_keyword:
+                        exclude_keywords.append(exclude_keyword)
+                else:
+                    # 包含关键词
+                    include_keywords.append(kw.lower())
+            
+            if not include_keywords:
+                return results
+            
+            # 遍历选中的子文件夹
+            for subfolder_name in selected_subfolders:
+                subfolder = parent_path / subfolder_name
+                if not subfolder.exists() or not subfolder.is_dir() or subfolder.name.startswith('.'):
+                    continue
+                
+                # 在子文件夹中搜索图片
+                for item in subfolder.rglob('*'):
+                    if not item.is_file() or not is_image_file(item):
+                        continue
+                    
+                    # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
+                    filename_lower = item.name.lower()
+                    if (all(keyword in filename_lower for keyword in include_keywords) and 
+                        not any(keyword in filename_lower for keyword in exclude_keywords)):
+                        relative_path = item.relative_to(self.images_root)
+                        file_info = get_file_info(item)
+                        if file_info:
+                            file_info['relative_path'] = str(relative_path)
+                            # 添加子文件夹信息
+                            subfolder_path = item.parent.relative_to(parent_path)
+                            file_info['subfolder'] = subfolder.name
+                            file_info['subfolder_path'] = str(subfolder_path) if subfolder_path != Path('.') else ''
+                            file_info['parent_folder'] = parent_folder
+                            
+                            # 添加图片描述信息
+                            try:
+                                folder_relative = str(item.parent.relative_to(self.images_root))
+                                description = self.get_image_description(folder_relative, item.name)
+                                file_info['description'] = description
+                                file_info['has_description'] = description is not None and description.strip() != ""
+                            except Exception as e:
+                                logger.debug(f"获取图片描述失败 {item}: {e}")
+                                file_info['description'] = None
+                                file_info['has_description'] = False
+                            
+                            # 添加收益率信息
+                            try:
+                                neu_ret_file = item.parent / 'neu_rets.json'
+                                if neu_ret_file.exists():
+                                    with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                                        neu_ret_data = json.load(f)
+                                        file_key = item.name.rsplit('.', 1)[0]
+                                        file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
+                                else:
+                                    file_info['neu_ret'] = 0
+                            except Exception:
+                                file_info['neu_ret'] = 0
+                            
+                            # 添加匹配的关键词信息，用于排序
+                            file_info['matched_keywords'] = include_keywords
+                            results.append(file_info)
+            
+            # 按收益率降序排序
+            results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
+            return results[:100]  # 限制结果数量
+            
+        except Exception as e:
+            logger.error(f"在选中子文件夹中搜索图片失败 {parent_folder}, {query}, {selected_subfolders}: {e}")
             raise
