@@ -1000,6 +1000,8 @@ kbd {
         <div class="gallery-grid full-width" id="imageSearchResultsGrid">
             <!-- 动态加载搜索结果 -->
         </div>
+        <!-- 搜索结果加载更多触发器 -->
+        <div id="searchLoadMoreTrigger" style="height: 1px; margin-top: 20px; display: none;"></div>
         <div class="loading-state" id="imageSearchLoading" style="display: none;">
             <div class="loading"></div>
             <p>搜索中...</p>
@@ -1250,18 +1252,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderer.image = function(href, title, text) {
                                 console.log('Processing image:', href, 'in folder:', '{{ folder_name }}');
                                 
+                                // 处理新版本 marked.js 的 API 变化，href 可能是对象
+                                let imageUrl = href;
+                                if (typeof href === 'object' && href.href) {
+                                    imageUrl = href.href;
+                                }
+                                
                                 // 如果是相对路径，转换为绝对路径
-                                if (href && !href.startsWith('http') && !href.startsWith('/')) {
-                                    // 获取当前文件夹路径，确保正确编码
+                                if (imageUrl && typeof imageUrl === 'string' && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                                    // 获取当前文件夹路径，图片文件应该和folder_info.md在同一目录
                                     const currentFolder = '{{ folder_name }}';
+                                    // 构建完整的文件路径：folder_name/image.png
+                                    // 分别编码文件夹名和文件名，保留中间的斜杠
                                     const encodedFolder = encodeURIComponent(currentFolder);
-                                    const encodedHref = encodeURIComponent(href);
-                                    href = `/gallery/serve/${encodedFolder}/${encodedHref}`;
-                                    console.log('Converted to:', href);
+                                    const encodedFileName = encodeURIComponent(imageUrl);
+                                    imageUrl = `/gallery/serve/${encodedFolder}/${encodedFileName}`;
+                                    console.log('Converted to:', imageUrl);
                                 }
                                 
                                 const titleAttr = title ? ` title="${title}"` : '';
-                                return `<img src="${href}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
+                                return `<img src="${imageUrl}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
                             };
                         } catch (e) {
                             console.warn('Failed to create custom renderer, using default:', e);
@@ -1440,6 +1450,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let imageSearchTimeout = null;
     let selectedSubfolders = [];  // 存储选中的子文件夹
     let availableSubfolders = {{ subfolders | tojson }};  // 获取所有可用的子文件夹
+    
+    // 搜索懒加载状态管理
+    let isSearchMode = false;
+    let currentSearchQuery = '';
+    let searchCurrentPage = 1;
+    let searchHasMore = false;
+    let searchTotalResults = 0;
+    let searchIsLoading = false;
     
     // 日期格式化函数
     function formatDate(dateString) {
@@ -1650,14 +1668,32 @@ document.addEventListener('DOMContentLoaded', function() {
         imageSearchResultsGrid.classList.remove('full-width');
     }
     
-    // 搜索子文件夹中的图片
-    function searchImagesInSubfolders(query) {
+    // 搜索子文件夹中的图片（支持懒加载）
+    function searchImagesInSubfolders(query, page = 1) {
         if (!query) return;
         
-        imageSearchLoading.style.display = 'block';
-        imageSearchResultsSection.style.display = 'block';
-        imageSearchResultsGrid.innerHTML = '';
-        searchResultsViewToggle.style.display = 'flex';
+        // 如果是新搜索，重置状态
+        if (page === 1) {
+            isSearchMode = true;
+            currentSearchQuery = query;
+            searchCurrentPage = 1;
+            searchHasMore = true;
+            searchTotalResults = 0;
+            
+            imageSearchLoading.style.display = 'block';
+            imageSearchResultsSection.style.display = 'block';
+            imageSearchResultsGrid.innerHTML = '';
+            searchResultsViewToggle.style.display = 'flex';
+            
+            // 显示搜索触发器
+            const searchTrigger = document.getElementById('searchLoadMoreTrigger');
+            if (searchTrigger) {
+                searchTrigger.style.display = 'block';
+            }
+        } else {
+            // 加载更多搜索结果
+            imageSearchLoading.style.display = 'block';
+        }
         
         const currentFolder = '{{ folder_name }}';
         
@@ -1668,10 +1704,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hasSubfolders && selectedSubfolders.length > 0) {
             // 构建选中子文件夹的搜索URL
             const selectedFoldersParam = selectedSubfolders.map(name => encodeURIComponent(name)).join(',');
-            searchUrl = `/gallery/api/search-in-selected-subfolders/${currentFolder}?q=${encodeURIComponent(query)}&subfolders=${selectedFoldersParam}`;
+            searchUrl = `/gallery/api/search-in-selected-subfolders/${currentFolder}?q=${encodeURIComponent(query)}&subfolders=${selectedFoldersParam}&page=${page}&per_page=20`;
         } else if (hasSubfolders) {
             // 有子文件夹，搜索所有子文件夹
-            searchUrl = `/gallery/api/search-in-subfolders/${currentFolder}?q=${encodeURIComponent(query)}`;
+            searchUrl = `/gallery/api/search-in-subfolders/${currentFolder}?q=${encodeURIComponent(query)}&page=${page}&per_page=20`;
         } else {
             // 没有子文件夹，搜索当前文件夹内的文件
             searchUrl = `/gallery/api/search?q=${encodeURIComponent(query)}&folder=${encodeURIComponent(currentFolder)}&type=image`;
@@ -1681,13 +1717,33 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 imageSearchLoading.style.display = 'none';
+                searchIsLoading = false;
+                
                 if (data.success) {
                     if (hasSubfolders) {
-                        imageSearchResults = data.data;
-                        displayImageSearchResults(imageSearchResults, query);
+                        // 新的分页API响应格式，data.data包含images数组和分页信息
+                        let newImages = [];
+                        if (data.data && data.data.images) {
+                            newImages = data.data.images;
+                            searchCurrentPage = data.data.page;
+                            searchHasMore = data.data.has_next;
+                            searchTotalResults = data.data.total;
+                        } else {
+                            newImages = data.data || [];
+                            searchHasMore = false;
+                        }
+                        
+                        if (page === 1) {
+                            imageSearchResults = newImages;
+                            displayImageSearchResults(imageSearchResults, query);
+                        } else {
+                            imageSearchResults = imageSearchResults.concat(newImages);
+                            appendImageSearchResults(newImages);
+                        }
                     } else {
                         imageSearchResults = data.data;
                         displayCurrentFolderSearchResults(imageSearchResults, query);
+                        searchHasMore = false;
                     }
                 } else {
                     imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
@@ -1695,10 +1751,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3>搜索失败</h3>
                         <p>${data.message}</p>
                     </div>`;
+                    searchHasMore = false;
                 }
             })
             .catch(error => {
                 imageSearchLoading.style.display = 'none';
+                searchIsLoading = false;
+                searchHasMore = false;
                 console.error('Error:', error);
                 imageSearchResultsGrid.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #dc3545;"></i>
@@ -1892,7 +1951,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 重置标题
         const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
-        sectionHeader.innerHTML = '<i class="fas fa-search"></i> 搜索结果';
+        // 更新搜索结果标题，显示分页信息
+        const currentCount = imageSearchResults.length;
+        const totalText = searchTotalResults > 0 ? ` (已加载 ${currentCount} / ${searchTotalResults} 张)` : ` (${currentCount} 张)`;
+        sectionHeader.innerHTML = `<i class="fas fa-search"></i> 搜索结果${totalText}`;
     }
     
     // 按收益率排序搜索结果
@@ -2457,6 +2519,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ESC键关闭悬浮菜单
+    // 追加搜索结果
+    function appendImageSearchResults(newImages) {
+        if (!newImages || newImages.length === 0) return;
+        
+        newImages.forEach(image => {
+            const card = createImageCardFromSearchResult(image);
+            imageSearchResultsGrid.appendChild(card);
+        });
+        
+        console.log(`追加了 ${newImages.length} 张搜索结果图片`);
+    }
+    
+    // 从搜索结果创建图片卡片
+    function createImageCardFromSearchResult(image) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        
+        // 处理收益率显示
+        const neuRetDisplay = image.neu_ret ? 
+            `<span class="neu-ret-value">${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
+        
+        // 对路径进行URL编码
+        const encodedPath = encodeURI(image.relative_path);
+        
+        card.innerHTML = `
+            <div class="image-wrapper">
+                ${neuRetDisplay}
+                <img src="/gallery/serve/${encodedPath}" 
+                     alt="${image.name}" 
+                     loading="lazy">
+            </div>
+            <div class="image-info">
+                <div class="image-name">${image.name}</div>
+                ${image.subfolder ? `<div class="image-subfolder">来自: ${image.subfolder}</div>` : ''}
+                ${image.description ? `<div class="image-description">${image.description}</div>` : ''}
+                <div class="image-meta">
+                    <span class="image-date">${formatDate(image.date)}</span>
+                    <span class="image-size">${image.size || '未知'}</span>
+                </div>
+            </div>
+        `;
+        
+        // 添加点击查看原图事件
+        card.addEventListener('click', function() {
+            window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+        });
+        
+        return card;
+    }
+    
+    // 设置搜索无限滚动观察器
+    function setupSearchInfiniteScroll() {
+        const searchTrigger = document.getElementById('searchLoadMoreTrigger');
+        
+        if ('IntersectionObserver' in window && searchTrigger) {
+            const searchScrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && isSearchMode && searchHasMore && !searchIsLoading) {
+                        loadMoreSearchResults();
+                    }
+                });
+            }, {
+                rootMargin: '100px' // 提前100px开始加载
+            });
+            
+            searchScrollObserver.observe(searchTrigger);
+        }
+    }
+    
+    // 加载更多搜索结果
+    function loadMoreSearchResults() {
+        if (searchIsLoading || !searchHasMore || !currentSearchQuery) {
+            return;
+        }
+        
+        searchIsLoading = true;
+        const nextPage = searchCurrentPage + 1;
+        
+        console.log(`加载搜索结果第 ${nextPage} 页`);
+        searchImagesInSubfolders(currentSearchQuery, nextPage);
+    }
+    
+    // 初始化搜索无限滚动
+    setupSearchInfiniteScroll();
+    
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (parentFloatingMenu && parentFloatingMenu.classList.contains('open')) {

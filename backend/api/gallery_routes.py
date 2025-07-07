@@ -91,8 +91,18 @@ def gallery_page(folder_name):
         
         # 获取排序参数，首次访问默认收益率排序
         sort_by = request.args.get('sort', 'neu_ret')
-        # 显示所有图片，不分页
-        images = gallery_service.get_image_list(folder_name, page=1, per_page=10000, sort_by=sort_by)
+        # 首次加载只显示前20张图片，支持懒加载
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # 检查是否是父文件夹（含有子文件夹）
+        if folder_info.get('has_subfolders', False) and sort_by == 'neu_ret':
+            # 如果是父文件夹且使用收益率排序，使用跨子文件夹收益率排序
+            images = gallery_service.get_images_cross_folders_by_return(folder_name, page=page, per_page=per_page)
+        else:
+            # 否则使用原有的单文件夹排序
+            images = gallery_service.get_image_list(folder_name, page=page, per_page=per_page, sort_by=sort_by)
+        
         return render_template('gallery.html',
                              folder_name=folder_name,
                              folder_info=folder_info,
@@ -111,7 +121,15 @@ def api_images(folder_name):
         per_page = request.args.get('per_page', 20, type=int)
         sort_by = request.args.get('sort', 'neu_ret')
         
-        images = gallery_service.get_image_list(folder_name, page, per_page, sort_by)
+        # 检查是否是父文件夹（含有子文件夹）
+        folder_info = gallery_service.get_folder_info(folder_name)
+        if folder_info and folder_info.get('has_subfolders', False) and sort_by == 'neu_ret':
+            # 如果是父文件夹且使用收益率排序，使用跨子文件夹收益率排序
+            images = gallery_service.get_images_cross_folders_by_return(folder_name, page, per_page)
+        else:
+            # 否则使用原有的单文件夹排序
+            images = gallery_service.get_image_list(folder_name, page, per_page, sort_by)
+        
         return jsonify({
             'success': True,
             'data': images,
@@ -186,9 +204,11 @@ def api_search():
 @gallery_bp.route('/api/search-in-folder/<path:folder_name>')
 @login_required
 def api_search_in_folder(folder_name):
-    """API: 在指定文件夹中搜索图片"""
+    """API: 在指定文件夹中搜索图片（支持分页）"""
     try:
         query = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
         
         if not query:
             return jsonify({
@@ -196,11 +216,10 @@ def api_search_in_folder(folder_name):
                 'message': '搜索关键词不能为空'
             }), 400
         
-        results = gallery_service.search_images_in_folder(folder_name, query)
+        results = gallery_service.search_images_in_folder(folder_name, query, page, per_page)
         return jsonify({
             'success': True,
             'data': results,
-            'count': len(results),
             'query': query,
             'folder': folder_name
         })
@@ -361,9 +380,11 @@ def api_set_folder_description(folder_name):
 @gallery_bp.route('/api/search-in-subfolders/<path:parent_folder>')
 @login_required
 def api_search_in_subfolders(parent_folder):
-    """API: 在子文件夹中搜索图片"""
+    """API: 在子文件夹中搜索图片（支持分页）"""
     try:
         query = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
         
         if not query:
             return jsonify({
@@ -371,11 +392,10 @@ def api_search_in_subfolders(parent_folder):
                 'message': '搜索关键词不能为空'
             }), 400
         
-        results = gallery_service.search_images_in_subfolders(parent_folder, query)
+        results = gallery_service.search_images_in_subfolders(parent_folder, query, page, per_page)
         return jsonify({
             'success': True,
             'data': results,
-            'count': len(results),
             'query': query,
             'parent_folder': parent_folder
         })
@@ -453,10 +473,12 @@ def api_images_cross_folders_by_return(parent_folder):
 @gallery_bp.route('/api/search-in-selected-subfolders/<path:parent_folder>')
 @login_required
 def api_search_in_selected_subfolders(parent_folder):
-    """API: 在选中的子文件夹中搜索图片"""
+    """API: 在选中的子文件夹中搜索图片（支持分页）"""
     try:
         query = request.args.get('q', '').strip()
         subfolders_param = request.args.get('subfolders', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
         
         if not query:
             return jsonify({
@@ -479,11 +501,10 @@ def api_search_in_selected_subfolders(parent_folder):
                 'message': '没有有效的子文件夹选择'
             }), 400
         
-        results = gallery_service.search_images_in_selected_subfolders(parent_folder, query, selected_subfolders)
+        results = gallery_service.search_images_in_selected_subfolders(parent_folder, query, selected_subfolders, page, per_page)
         return jsonify({
             'success': True,
             'data': results,
-            'count': len(results),
             'query': query,
             'parent_folder': parent_folder,
             'selected_subfolders': selected_subfolders

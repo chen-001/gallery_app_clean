@@ -197,7 +197,7 @@ class GalleryService:
             logger.error(f"搜索文件失败 {query}: {e}")
             raise
 
-    def search_images_in_folder(self, folder_name: str, query: str) -> List[Dict]:
+    def search_images_in_folder(self, folder_name: str, query: str, page: int = 1, per_page: int = 20) -> Dict:
         """在指定文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
         try:
             results = []
@@ -223,7 +223,8 @@ class GalleryService:
                     # 包含关键词
                     include_keywords.append(kw.lower())
             
-            if not include_keywords:
+            # 如果没有包含关键字也没有排除关键字，则返回空结果
+            if not include_keywords and not exclude_keywords:
                 return results
             
             # 遍历文件夹中的所有图片
@@ -233,8 +234,11 @@ class GalleryService:
                 
                 # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
                 filename_lower = item.name.lower()
-                if (all(keyword in filename_lower for keyword in include_keywords) and 
-                    not any(keyword in filename_lower for keyword in exclude_keywords)):
+                # 如果有包含关键字，检查是否全部匹配
+                include_match = not include_keywords or all(keyword in filename_lower for keyword in include_keywords)
+                # 如果有排除关键字，检查是否包含任何一个
+                exclude_match = not any(keyword in filename_lower for keyword in exclude_keywords)
+                if include_match and exclude_match:
                     relative_path = item.relative_to(self.images_root)
                     file_info = get_file_info(item)
                     if file_info:
@@ -271,13 +275,27 @@ class GalleryService:
             
             # 按收益率降序排序
             results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
-            return results[:100]  # 限制结果数量
+            
+            # 分页处理
+            total = len(results)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            paginated_results = results[start_idx:end_idx]
+            
+            return {
+                'images': paginated_results,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'has_next': end_idx < total,
+                'has_prev': page > 1
+            }
             
         except Exception as e:
             logger.error(f"在文件夹中搜索图片失败 {folder_name}, {query}: {e}")
             raise
 
-    def search_images_in_subfolders(self, parent_folder: str, query: str) -> List[Dict]:
+    def search_images_in_subfolders(self, parent_folder: str, query: str, page: int = 1, per_page: int = 20) -> Dict:
         """在指定父文件夹的所有子文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
         try:
             results = []
@@ -303,7 +321,8 @@ class GalleryService:
                     # 包含关键词
                     include_keywords.append(kw.lower())
             
-            if not include_keywords:
+            # 如果没有包含关键字也没有排除关键字，则返回空结果
+            if not include_keywords and not exclude_keywords:
                 return results
             
             # 遍历所有子文件夹
@@ -318,8 +337,11 @@ class GalleryService:
                     
                     # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
                     filename_lower = item.name.lower()
-                    if (all(keyword in filename_lower for keyword in include_keywords) and 
-                        not any(keyword in filename_lower for keyword in exclude_keywords)):
+                    # 如果有包含关键字，检查是否全部匹配
+                    include_match = not include_keywords or all(keyword in filename_lower for keyword in include_keywords)
+                    # 如果有排除关键字，检查是否包含任何一个
+                    exclude_match = not any(keyword in filename_lower for keyword in exclude_keywords)
+                    if include_match and exclude_match:
                         relative_path = item.relative_to(self.images_root)
                         file_info = get_file_info(item)
                         if file_info:
@@ -360,7 +382,21 @@ class GalleryService:
             
             # 按收益率降序排序
             results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
-            return results[:100]  # 限制结果数量
+            
+            # 分页处理
+            total = len(results)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            paginated_results = results[start_idx:end_idx]
+            
+            return {
+                'images': paginated_results,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'has_next': end_idx < total,
+                'has_prev': page > 1
+            }
             
         except Exception as e:
             logger.error(f"在子文件夹中搜索图片失败 {parent_folder}, {query}: {e}")
@@ -888,7 +924,7 @@ class GalleryService:
             logger.error(f"跨文件夹收益率排序失败 {parent_folder}: {e}")
             raise
 
-    def search_images_in_selected_subfolders(self, parent_folder: str, query: str, selected_subfolders: List[str]) -> List[Dict]:
+    def search_images_in_selected_subfolders(self, parent_folder: str, query: str, selected_subfolders: List[str], page: int = 1, per_page: int = 20) -> Dict:
         """在指定父文件夹的选中子文件夹中搜索图片，支持多关键词AND搜索和屏蔽关键词"""
         try:
             results = []
@@ -914,7 +950,8 @@ class GalleryService:
                     # 包含关键词
                     include_keywords.append(kw.lower())
             
-            if not include_keywords:
+            # 如果没有包含关键字也没有排除关键字，则返回空结果
+            if not include_keywords and not exclude_keywords:
                 return results
             
             # 遍历选中的子文件夹
@@ -930,8 +967,11 @@ class GalleryService:
                     
                     # 关键词匹配：文件名必须包含所有包含关键词，且不能包含任何屏蔽关键词
                     filename_lower = item.name.lower()
-                    if (all(keyword in filename_lower for keyword in include_keywords) and 
-                        not any(keyword in filename_lower for keyword in exclude_keywords)):
+                    # 如果有包含关键字，检查是否全部匹配
+                    include_match = not include_keywords or all(keyword in filename_lower for keyword in include_keywords)
+                    # 如果有排除关键字，检查是否包含任何一个
+                    exclude_match = not any(keyword in filename_lower for keyword in exclude_keywords)
+                    if include_match and exclude_match:
                         relative_path = item.relative_to(self.images_root)
                         file_info = get_file_info(item)
                         if file_info:
@@ -972,7 +1012,21 @@ class GalleryService:
             
             # 按收益率降序排序
             results.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
-            return results[:100]  # 限制结果数量
+            
+            # 分页处理
+            total = len(results)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            paginated_results = results[start_idx:end_idx]
+            
+            return {
+                'images': paginated_results,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'has_next': end_idx < total,
+                'has_prev': page > 1
+            }
             
         except Exception as e:
             logger.error(f"在选中子文件夹中搜索图片失败 {parent_folder}, {query}, {selected_subfolders}: {e}")

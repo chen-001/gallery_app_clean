@@ -847,6 +847,9 @@ kbd {
         <div class="loading"></div>
         <p>加载中...</p>
     </div>
+    
+    <!-- 加载更多触发器 -->
+    <div id="loadMoreTrigger" style="height: 1px; margin-top: 20px;"></div>
 </div>
 
 <!-- 悬浮按钮 -->
@@ -1367,20 +1370,18 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFiltersAndSort();
     }
     
-    // 收益率排序功能
+    // 收益率排序功能（支持懒加载）
     function applySortByNeuRet(filterType, sortOrder, searchTerm = '') {
         if (!galleryGrid) return;
         
-        const folderName = window.location.pathname.split('/').pop();
+        // 重置分页状态
+        resetToFirstPage();
         
-        // 使用AJAX获取排序数据
-        fetch(`/gallery/api/folder/${folderName}/images?sort=neu_ret`)
+        // 使用AJAX获取第一页排序数据
+        fetch(`/gallery/api/folder/${folderName}/images?page=1&per_page=${perPage}&sort=neu_ret`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.images) {
-                    // 清空画廊
-                    galleryGrid.innerHTML = '';
-                    
                     let imagesToShow = data.data.images;
                     
                     // 应用过滤器和搜索
@@ -1424,15 +1425,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // 重新渲染图片
-                    imagesToShow.forEach(image => {
-                        const imageCard = createImageCard(image);
+                    imagesToShow.forEach((image, index) => {
+                        const imageCard = createImageCardFromData(image, index + 1);
                         galleryGrid.appendChild(imageCard);
                     });
+                    
+                    // 更新分页信息
+                    hasMoreImages = data.data.has_next;
+                    totalImages = data.data.total;
                     
                     // 更新计数
                     const subtitle = document.querySelector('.subtitle');
                     if (subtitle && subtitle.textContent.includes('张图片')) {
-                        subtitle.textContent = `共 ${imagesToShow.length} 张图片`;
+                        subtitle.textContent = `已加载 ${imagesToShow.length} / ${totalImages} 张图片`;
                     }
                     
                     // 重新初始化懒加载
@@ -1520,41 +1525,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 服务器端搜索函数
-    function performServerSearch(query) {
+    // 服务器端搜索函数（支持懒加载）
+    function performServerSearch(query, page = 1) {
         if (!galleryGrid) return;
         
-        // 显示加载状态
-        galleryGrid.innerHTML = '<div class="loading-state"><div class="loading"></div><p>搜索中...</p></div>';
+        // 如果是新搜索，重置状态
+        if (page === 1) {
+            // 进入搜索模式
+            isSearchMode = true;
+            currentSearchQuery = query;
+            searchCurrentPage = 1;
+            searchHasMore = true;
+            searchTotalResults = 0;
+            
+            // 清空画廊并显示加载状态
+            galleryGrid.innerHTML = '<div class="loading-state"><div class="loading"></div><p>搜索中...</p></div>';
+        } else {
+            // 加载更多搜索结果
+            const loadingState = document.getElementById('loadingState');
+            if (loadingState) {
+                loadingState.style.display = 'block';
+            }
+        }
         
-        const currentFolder = '{{ folder_name }}';
-        
-        fetch(`/gallery/api/search-in-folder/${currentFolder}?q=${encodeURIComponent(query)}`)
+        fetch(`/gallery/api/search-in-folder/${folderName}?q=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    displaySearchResults(data.data, query);
+                if (data.success && data.data) {
+                    if (page === 1) {
+                        // 首次搜索，显示结果
+                        displaySearchResults(data.data, query);
+                    } else {
+                        // 加载更多搜索结果
+                        appendSearchResults(data.data);
+                    }
+                    
+                    // 更新搜索状态
+                    searchCurrentPage = data.data.page;
+                    searchHasMore = data.data.has_next;
+                    searchTotalResults = data.data.total;
                 } else {
-                    galleryGrid.innerHTML = `<div class="empty-state">
-                        <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
-                        <h3>搜索失败</h3>
-                        <p>${data.message}</p>
-                    </div>`;
+                    if (page === 1) {
+                        galleryGrid.innerHTML = `<div class="empty-state">
+                            <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                            <h3>搜索失败</h3>
+                            <p>${data.message}</p>
+                        </div>`;
+                    }
+                    searchHasMore = false;
                 }
             })
             .catch(error => {
                 console.error('搜索请求失败:', error);
-                galleryGrid.innerHTML = `<div class="empty-state">
-                    <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
-                    <h3>搜索时发生错误</h3>
-                    <p>请稍后再试</p>
-                </div>`;
+                if (page === 1) {
+                    galleryGrid.innerHTML = `<div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                        <h3>搜索时发生错误</h3>
+                        <p>请稍后再试</p>
+                    </div>`;
+                }
+                searchHasMore = false;
+            })
+            .finally(() => {
+                isLoading = false;
+                const loadingState = document.getElementById('loadingState');
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
             });
     }
     
-    // 显示搜索结果
-    function displaySearchResults(images, query) {
+    // 显示搜索结果（首次搜索）
+    function displaySearchResults(searchData, query) {
         if (!galleryGrid) return;
+        
+        const images = searchData.images || [];
         
         if (images.length === 0) {
             galleryGrid.innerHTML = `<div class="empty-state">
@@ -1568,6 +1613,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (subtitle) {
                 subtitle.textContent = `搜索结果: 0 张图片`;
             }
+            searchHasMore = false;
             return;
         }
         
@@ -1582,13 +1628,39 @@ document.addEventListener('DOMContentLoaded', function() {
         // 更新计数
         const subtitle = document.querySelector('.subtitle');
         if (subtitle) {
-            subtitle.textContent = `搜索结果: ${images.length} 张图片 (关键词: "${query}")`;
+            subtitle.textContent = `搜索结果: 已加载 ${images.length} / ${searchData.total} 张图片 (关键词: "${query}")`;
         }
         
         // 重新初始化懒加载
         initializeLazyLoading();
         
-        console.log(`显示了 ${images.length} 张搜索结果图片`);
+        console.log(`显示了 ${images.length} 张搜索结果图片，共 ${searchData.total} 张`);
+    }
+    
+    // 追加更多搜索结果
+    function appendSearchResults(searchData) {
+        if (!galleryGrid) return;
+        
+        const images = searchData.images || [];
+        const currentCount = document.querySelectorAll('.image-card').length;
+        
+        images.forEach((image, index) => {
+            const cardIndex = currentCount + index + 1;
+            const card = createImageCardFromSearchResult(image, cardIndex);
+            galleryGrid.appendChild(card);
+        });
+        
+        // 更新计数
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle) {
+            const newCount = currentCount + images.length;
+            subtitle.textContent = `搜索结果: 已加载 ${newCount} / ${searchData.total} 张图片 (关键词: "${currentSearchQuery}")`;
+        }
+        
+        // 重新初始化懒加载
+        initializeLazyLoading();
+        
+        console.log(`追加了 ${images.length} 张搜索结果图片`);
     }
     
     // 从搜索结果创建图片卡片
@@ -1703,20 +1775,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
     
-    // 重新初始化懒加载的函数
-    function initializeLazyLoading() {
-        const images = document.querySelectorAll('img[loading="lazy"]');
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        observer.unobserve(img);
-                    }
-                });
-            });
-            
-            images.forEach(img => imageObserver.observe(img));
+    // 重置为第一页（搜索和筛选时使用）
+    function resetToFirstPage() {
+        currentPage = 1;
+        hasMoreImages = true;
+        isLoading = false;
+        
+        // 清空画廊
+        const galleryGrid = document.querySelector('.gallery-grid');
+        if (galleryGrid) {
+            galleryGrid.innerHTML = '';
         }
     }
     
@@ -1865,63 +1933,245 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 恢复原始画廊显示
+    // 恢复原始画廊显示（支持懒加载）
     function restoreOriginalGallery() {
-        if (!galleryGrid || originalImageCards.length === 0) {
-            // 如果没有原始数据，重新加载页面
-            location.reload();
-            return;
-        }
+        // 退出搜索模式
+        isSearchMode = false;
+        currentSearchQuery = '';
+        searchCurrentPage = 1;
+        searchHasMore = false;
+        searchTotalResults = 0;
         
-        // 恢复原始图片显示
-        galleryGrid.innerHTML = '';
-        originalImageCards.forEach(card => galleryGrid.appendChild(card));
-        
-        // 恢复原始计数
-        const subtitle = document.querySelector('.subtitle');
-        if (subtitle) {
-            const originalCount = originalImageCards.length;
-            subtitle.textContent = `共 ${originalCount} 张图片`;
-        }
-        
-        // 重新应用当前的排序和筛选设置（除了搜索）
-        applyFiltersAndSort();
+        // 重新加载第一页数据并重新启用懒加载
+        location.reload();
     }
     
-    // 简单的图片懒加载和缓存
-    const images = document.querySelectorAll('img[loading="lazy"]');
+    // 虚拟滚动和懒加载实现
+    let currentPage = {{ images.page }};
+    let totalImages = {{ images.total }};
+    let perPage = {{ images.per_page }};
+    let isLoading = false;
+    let hasMoreImages = {{ 'true' if images.has_next else 'false' }};
+    const folderName = '{{ folder_name }}';
+    
+    // 搜索状态管理
+    let isSearchMode = false;
+    let currentSearchQuery = '';
+    let searchCurrentPage = 1;
+    let searchHasMore = false;
+    let searchTotalResults = 0;
     
     // 图片缓存
     const imageCache = new Map();
     
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const src = img.src;
+    // 初始化图片懒加载
+    function initializeLazyLoading() {
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        const src = img.src;
+                        
+                        // 检查缓存
+                        if (imageCache.has(src)) {
+                            console.log('Image loaded from cache:', src);
+                        } else {
+                            // 预加载图片
+                            const preloadImg = new Image();
+                            preloadImg.onload = function() {
+                                imageCache.set(src, true);
+                                console.log('Image cached:', src);
+                            };
+                            preloadImg.src = src;
+                        }
+                        
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+        }
+    }
+    
+    // 加载更多图片
+    function loadMoreImages() {
+        if (isLoading || !hasMoreImages) {
+            return;
+        }
+        
+        isLoading = true;
+        const nextPage = currentPage + 1;
+        const loadingState = document.getElementById('loadingState');
+        
+        if (loadingState) {
+            loadingState.style.display = 'block';
+        }
+        
+        // 获取当前排序设置
+        const currentSort = sortBySelect ? sortBySelect.value : 'neu_ret';
+        const currentOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
+        
+        fetch(`/gallery/api/folder/${folderName}/images?page=${nextPage}&per_page=${perPage}&sort=${currentSort}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.images) {
+                    const newImages = data.data.images;
                     
-                    // 检查缓存
-                    if (imageCache.has(src)) {
-                        console.log('Image loaded from cache:', src);
-                    } else {
-                        // 预加载图片
-                        const preloadImg = new Image();
-                        preloadImg.onload = function() {
-                            imageCache.set(src, true);
-                            console.log('Image cached:', src);
-                        };
-                        preloadImg.src = src;
+                    // 添加新图片到画廊
+                    const galleryGrid = document.querySelector('.gallery-grid');
+                    newImages.forEach((image, index) => {
+                        const cardIndex = (nextPage - 1) * perPage + index + 1;
+                        const imageCard = createImageCardFromData(image, cardIndex);
+                        galleryGrid.appendChild(imageCard);
+                    });
+                    
+                    // 更新分页信息
+                    currentPage = nextPage;
+                    hasMoreImages = data.data.has_next;
+                    
+                    // 重新初始化懒加载
+                    initializeLazyLoading();
+                    
+                    // 更新图片计数
+                    const subtitle = document.querySelector('.subtitle');
+                    if (subtitle && subtitle.textContent.includes('张图片')) {
+                        const currentCount = document.querySelectorAll('.image-card').length;
+                        subtitle.textContent = `已加载 ${currentCount} / ${totalImages} 张图片`;
                     }
                     
-                    img.classList.remove('lazy');
-                    imageObserver.unobserve(img);
+                    console.log(`加载了第 ${nextPage} 页，共 ${newImages.length} 张图片`);
+                } else {
+                    console.error('加载更多图片失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载更多图片时发生错误:', error);
+            })
+            .finally(() => {
+                isLoading = false;
+                if (loadingState) {
+                    loadingState.style.display = 'none';
                 }
             });
-        });
-        
-        images.forEach(img => imageObserver.observe(img));
     }
+    
+    // 创建图片卡片
+    function createImageCardFromData(image, cardIndex) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        card.id = `image-${cardIndex}`;
+        
+        // 处理描述文本
+        let description = image.description || '';
+        if (description) {
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
+        
+        // 收益率显示
+        const neuRetDisplay = image.neu_ret ? 
+            `<span><i class="fas fa-chart-line"></i> 收益率: ${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
+        
+        // 对路径进行URL编码以处理中文字符
+        const encodedPath = encodeURI(image.relative_path);
+        
+        card.innerHTML = `
+            <div class="image-thumbnail">
+                ${image.extension === '.svg' ? `
+                    <object data="/gallery/serve/${encodedPath}" 
+                            type="image/svg+xml" 
+                            class="svg-object">
+                        <img src="/gallery/serve/${encodedPath}" 
+                             alt="${image.name}" loading="lazy">
+                    </object>
+                ` : `
+                    <img src="/gallery/serve/${encodedPath}" 
+                         alt="${image.name}" 
+                         loading="lazy">
+                `}
+            </div>
+            <div class="image-info">
+                <div class="image-name">${image.name}</div>
+                <div class="image-meta">
+                    ${neuRetDisplay}
+                    ${image.size ? `<span><i class="fas fa-hdd"></i> ${image.size}</span>` : ''}
+                    ${image.width && image.height ? `<span><i class="fas fa-expand-arrows-alt"></i> ${image.width}×${image.height}</span>` : ''}
+                    ${image.date ? `<span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>` : ''}
+                </div>
+                ${description ? `<div class="image-description"><i class="fas fa-comment"></i> ${description}</div>` : ''}
+                <div class="image-actions">
+                    <a href="/gallery/viewer/${image.relative_path}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <button class="btn btn-info btn-edit-desc" 
+                            data-folder="${folderName}" 
+                            data-filename="${image.name}"
+                            data-description="${image.description || ''}">
+                        <i class="fas fa-edit"></i> 描述
+                    </button>
+                    <a href="/gallery/serve/${image.relative_path}" class="btn btn-secondary" download>
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                    <button class="btn btn-danger btn-delete" 
+                            data-filename="${image.name}"
+                            data-filepath="${image.relative_path}">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // 设置无限滚动观察器
+    function setupInfiniteScroll() {
+        const loadMoreTrigger = document.getElementById('loadMoreTrigger');
+        
+        if ('IntersectionObserver' in window && loadMoreTrigger) {
+            const scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !isLoading) {
+                        if (isSearchMode && searchHasMore) {
+                            // 搜索模式下加载更多搜索结果
+                            loadMoreSearchResults();
+                        } else if (!isSearchMode && hasMoreImages) {
+                            // 正常模式下加载更多图片
+                            loadMoreImages();
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '100px' // 提前100px开始加载
+            });
+            
+            scrollObserver.observe(loadMoreTrigger);
+        }
+    }
+    
+    // 加载更多搜索结果
+    function loadMoreSearchResults() {
+        if (isLoading || !searchHasMore || !currentSearchQuery) {
+            return;
+        }
+        
+        isLoading = true;
+        const nextPage = searchCurrentPage + 1;
+        
+        console.log(`加载搜索结果第 ${nextPage} 页`);
+        performServerSearch(currentSearchQuery, nextPage);
+    }
+    
+    // 初始化
+    initializeLazyLoading();
+    setupInfiniteScroll();
     
     // Markdown 渲染功能
     function renderMarkdown() {
@@ -1971,18 +2221,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderer.image = function(href, title, text) {
                                 console.log('Processing image:', href, 'in folder:', '{{ folder_name }}');
                                 
+                                // 处理新版本 marked.js 的 API 变化，href 可能是对象
+                                let imageUrl = href;
+                                if (typeof href === 'object' && href.href) {
+                                    imageUrl = href.href;
+                                }
+                                
                                 // 如果是相对路径，转换为绝对路径
-                                if (href && !href.startsWith('http') && !href.startsWith('/')) {
-                                    // 获取当前文件夹路径，确保正确编码
+                                if (imageUrl && typeof imageUrl === 'string' && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                                    // 获取当前文件夹路径，图片文件应该和folder_info.md在同一目录
                                     const currentFolder = '{{ folder_name }}';
+                                    // 构建完整的文件路径：folder_name/image.png
+                                    // 分别编码文件夹名和文件名，保留中间的斜杠
                                     const encodedFolder = encodeURIComponent(currentFolder);
-                                    const encodedHref = encodeURIComponent(href);
-                                    href = `/gallery/serve/${encodedFolder}/${encodedHref}`;
-                                    console.log('Converted to:', href);
+                                    const encodedFileName = encodeURIComponent(imageUrl);
+                                    imageUrl = `/gallery/serve/${encodedFolder}/${encodedFileName}`;
+                                    console.log('Converted to:', imageUrl);
                                 }
                                 
                                 const titleAttr = title ? ` title="${title}"` : '';
-                                return `<img src="${href}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
+                                return `<img src="${imageUrl}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
                             };
                         } catch (e) {
                             console.warn('Failed to create custom renderer, using default:', e);
