@@ -869,6 +869,36 @@ kbd {
         flex-wrap: wrap;
     }
 }
+
+/* 保存状态指示器样式 */
+.save-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.save-status.saved {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.save-status.saving {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.save-status.error {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* 默认状态（未保存） */
+.save-status:not(.saved):not(.saving):not(.error) {
+    color: #6c757d;
+    background: rgba(108, 117, 125, 0.1);
+}
 </style>
 {% endblock %}
 
@@ -1150,8 +1180,9 @@ kbd {
             </div>
             <div class="form-group">
                 <label for="folderDescription">文件夹描述:</label>
-                <div style="margin-bottom: 8px; font-size: 12px; color: #666;">
-                    支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进
+                <div style="margin-bottom: 8px; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;">
+                    <span>支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进</span>
+                    <span id="saveStatus" class="save-status">已保存</span>
                 </div>
                 <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)"></textarea>
             </div>
@@ -1244,8 +1275,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             // 自定义代码块渲染
                             renderer.code = function(code, lang) {
-                                const className = lang ? `language-${lang}` : '';
-                                return `<pre class="code-block"><code class="${className}">${code}</code></pre>`;
+                                // 处理新版本 marked.js 的 API 变化，code 可能是对象
+                                let codeText = code;
+                                if (typeof code === 'object' && code.text) {
+                                    codeText = code.text;
+                                }
+                                
+                                // 处理语言参数
+                                let language = lang;
+                                if (typeof lang === 'object' && lang.lang) {
+                                    language = lang.lang;
+                                }
+                                
+                                const className = language ? `language-${language}` : '';
+                                return `<pre class="code-block"><code class="${className}">${codeText}</code></pre>`;
                             };
                             
                             // 自定义图片渲染
@@ -1368,9 +1411,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 保存文件夹描述
-    function saveFolderDescription() {
+    function saveFolderDescription(silent = false) {
         if (!currentFolder) {
-            alert('参数错误');
+            if (!silent) alert('参数错误');
             return;
         }
         
@@ -1389,21 +1432,62 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('文件夹描述已保存');
-                closeFolderModal();
-                // 刷新页面显示新的描述
-                location.reload();
+                if (!silent) {
+                    alert('文件夹描述已保存');
+                    closeFolderModal();
+                    // 刷新页面显示新的描述
+                    location.reload();
+                } else {
+                    updateSaveStatus('已保存');
+                }
             } else {
-                alert('保存失败: ' + data.message);
+                if (!silent) alert('保存失败: ' + data.message);
+                updateSaveStatus('保存失败');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('保存时发生错误');
+            if (!silent) alert('保存时发生错误');
+            updateSaveStatus('保存失败');
         });
     }
     
     saveFolderBtn.addEventListener('click', saveFolderDescription);
+    
+    // 防抖函数
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // 自动保存函数（防抖）
+    const autoSaveFolderDescription = debounce(function() {
+        updateSaveStatus('保存中...');
+        saveFolderDescription(true);
+    }, 2000); // 2秒后自动保存
+    
+    // 更新保存状态
+    function updateSaveStatus(status) {
+        const saveStatus = document.getElementById('saveStatus');
+        if (saveStatus) {
+            saveStatus.textContent = status;
+            saveStatus.className = 'save-status';
+            if (status === '已保存') {
+                saveStatus.classList.add('saved');
+            } else if (status === '保存中...') {
+                saveStatus.classList.add('saving');
+            } else if (status === '保存失败') {
+                saveStatus.classList.add('error');
+            }
+        }
+    }
     
     // 添加键盘快捷键支持 (Ctrl+S 保存)
     folderDescriptionTextarea.addEventListener('keydown', function(e) {
@@ -1419,6 +1503,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
             this.selectionStart = this.selectionEnd = start + 2;
         }
+    });
+    
+    // 添加自动保存功能
+    folderDescriptionTextarea.addEventListener('input', function() {
+        updateSaveStatus('未保存');
+        autoSaveFolderDescription();
     });
     
     // 页面加载完成后渲染 markdown

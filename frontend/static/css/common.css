@@ -267,3 +267,39 @@ body {
     border-color: var(--primary-color);
     color: #004085;
 }
+
+/* 保存状态指示器样式 */
+.save-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.save-status.saved {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #4caf50;
+}
+
+.save-status.saving {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ff9800;
+}
+
+.save-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #dc3545;
+}
+
+.save-status:not(.saved):not(.saving):not(.error) {
+    background: #e9ecef;
+    color: #6c757d;
+    border: 1px solid #ced4da;
+}
