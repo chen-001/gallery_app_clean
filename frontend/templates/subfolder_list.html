@@ -348,7 +348,6 @@ kbd {
     box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 182, 193, 0.2);
-    cursor: pointer;
 }
 
 .described-image-card:hover {
@@ -358,21 +357,25 @@ kbd {
 
 .described-image-preview {
     width: 100%;
-    height: 600px;
+    min-height: 300px;
     background: linear-gradient(135deg, #fef8fa 0%, #fdeef2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     position: relative;
     overflow: hidden;
+    padding: 0;
 }
 
 .gallery-grid.full-width .described-image-preview {
-    height: 800px;
+    min-height: 400px;
+}
+
+.gallery-grid.full-width .described-image-preview img,
+.gallery-grid.full-width .described-image-preview .svg-object {
+    min-height: 400px;
 }
 
 .gallery-grid.full-width .image-thumbnail {
-    height: 800px;
+    /* 让容器完全自适应图片高度 */
 }
 
 .gallery-grid.full-width .image-card {
@@ -383,15 +386,24 @@ kbd {
 .gallery-grid.full-width .image-thumbnail .svg-object,
 .gallery-grid.full-width .image-thumbnail img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: contain;
+    display: block;
+    vertical-align: top;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
 }
 
-.described-image-preview img {
-    max-width: 100%;
-    max-height: 100%;
+.described-image-preview img,
+.described-image-preview .svg-object {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
     object-fit: contain;
     border-radius: 4px;
+    display: block;
 }
 
 .described-image-info {
@@ -453,8 +465,12 @@ kbd {
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 182, 193, 0.2);
     cursor: pointer;
-    max-width: 300px;
     width: 100%;
+}
+
+/* 多列模式下限制卡片最大宽度 */
+.gallery-grid.multi-column .image-card {
+    max-width: 300px;
 }
 
 .image-card:hover {
@@ -464,21 +480,38 @@ kbd {
 
 .image-thumbnail {
     width: 100%;
-    height: 200px;
     background: linear-gradient(135deg, #fef8fa 0%, #fdeef2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     position: relative;
     overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    line-height: 0;
+    font-size: 0;
 }
 
 .image-thumbnail .svg-object,
 .image-thumbnail img {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: auto;
     object-fit: contain;
     border-radius: 4px;
+    display: block;
+    vertical-align: top;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+}
+
+/* 单列全宽模式下的图片样式 */
+.gallery-grid:not(.multi-column) .image-thumbnail .svg-object,
+.gallery-grid:not(.multi-column) .image-thumbnail img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    max-width: none;
 }
 
 .image-info {
@@ -542,7 +575,12 @@ kbd {
     }
     
     .described-image-preview {
-        height: 600px;
+        min-height: 300px;
+    }
+    
+    .described-image-preview img,
+    .described-image-preview .svg-object {
+        min-height: 300px;
     }
     
     .gallery-grid {
@@ -552,7 +590,7 @@ kbd {
     }
     
     .image-thumbnail {
-        height: 150px;
+        /* 响应式下也保持自适应高度 */
     }
 }
 
@@ -563,7 +601,12 @@ kbd {
     }
     
     .described-image-preview {
-        height: 400px;
+        min-height: 250px;
+    }
+    
+    .described-image-preview img,
+    .described-image-preview .svg-object {
+        min-height: 250px;
     }
 }
 
@@ -597,6 +640,118 @@ kbd {
 
 .parent-floating-btn:active {
     transform: translateY(-50%) scale(0.95);
+}
+
+/* 悬浮搜索按钮样式 */
+.floating-search-btn {
+    position: fixed;
+    top: 40%;
+    right: 20px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.floating-search-btn:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+}
+
+.floating-search-btn:active {
+    transform: scale(0.95);
+}
+
+/* 悬浮搜索窗样式 */
+.floating-search-window {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100vh;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e6edff 100%);
+    border-left: 1px solid rgba(0, 123, 255, 0.3);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.floating-search-window.show {
+    right: 0;
+}
+
+.floating-search-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.floating-search-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.floating-search-close {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.floating-search-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.floating-search-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.floating-search-section {
+    margin-bottom: 20px;
+}
+
+.floating-search-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.floating-search-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.floating-search-controls .btn {
+    font-size: 12px;
+    padding: 6px 12px;
 }
 
 /* 父文件夹悬浮菜单样式 */
@@ -1017,17 +1172,8 @@ kbd {
                 </button>
             </div>
         </div>
-        <!-- 视图切换控件 -->
-        <div class="view-toggle-buttons" id="searchResultsViewToggle" style="display: none; padding: 0 25px;">
-            <label>显示模式:</label>
-            <button class="view-toggle-btn active" id="singleColumnView">
-                <i class="fas fa-align-justify"></i> 单列宽图
-            </button>
-            <button class="view-toggle-btn" id="multiColumnView">
-                <i class="fas fa-th"></i> 多列小图
-            </button>
-        </div>
-        <div class="gallery-grid full-width" id="imageSearchResultsGrid">
+        <!-- 视图切换控件已移除，搜索结果现在统一使用有描述图片的样式 -->
+        <div class="described-images-grid" id="imageSearchResultsGrid">
             <!-- 动态加载搜索结果 -->
         </div>
         <!-- 搜索结果加载更多触发器 -->
@@ -1041,7 +1187,7 @@ kbd {
     <!-- 有描述图片显示区域 -->
     <div class="described-images-section" id="describedImagesSection">
         <div class="section-header">
-            <h3><i class="fas fa-comment-alt"></i> 有描述的图片</h3>
+            <h3><i class="fas fa-comment-alt"></i> 有描述的图片 <small style="color: #666; font-size: 0.8em;">（按收益率排序）</small></h3>
             <button class="btn btn-secondary btn-sm" id="hideDescribedImages">
                 <i class="fas fa-times"></i> 隐藏
             </button>
@@ -1148,6 +1294,45 @@ kbd {
     </div>
 </div>
 {% endif %}
+
+<!-- 右侧悬浮搜索窗 -->
+<button class="floating-search-btn" id="floatingSearchBtn" title="搜索">
+    <i class="fas fa-search"></i>
+</button>
+
+<!-- 悬浮搜索窗 -->
+<div class="floating-search-window" id="floatingSearchWindow">
+    <div class="floating-search-header">
+        <h3><i class="fas fa-search"></i> 快速搜索</h3>
+        <button class="floating-search-close" id="floatingSearchClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="floating-search-content">
+        <div class="floating-search-section">
+            <label>搜索子文件夹</label>
+            <div class="search-container">
+                <input type="text" id="floatingSearchInput" class="search-input" placeholder="搜索子文件夹...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+        <div class="floating-search-section">
+            <label>搜索图片</label>
+            <div class="search-container">
+                <input type="text" id="floatingImageSearchInput" class="search-input" placeholder="搜索图片... (支持多关键词)">
+                <i class="fas fa-image search-icon"></i>
+            </div>
+            <div class="floating-search-controls">
+                <button class="btn btn-info btn-sm" id="floatingToggleSubfolderSelect">
+                    <i class="fas fa-filter"></i> 选择范围
+                </button>
+                <button class="btn btn-secondary btn-sm" id="floatingClearImageSearch" style="display: none;">
+                    <i class="fas fa-times"></i> 清除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- 图片查看结果区域 -->
 <div class="described-images-section" id="parentImageViewSection" style="display: none;">
@@ -1532,9 +1717,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeSubfolderSelectBtn = document.getElementById('closeSubfolderSelect');
     
     // 视图切换功能
-    const searchResultsViewToggle = document.getElementById('searchResultsViewToggle');
-    const singleColumnViewBtn = document.getElementById('singleColumnView');
-    const multiColumnViewBtn = document.getElementById('multiColumnView');
+    // 视图切换控件已移除，搜索结果现在统一使用有描述图片的样式
     
     let imageSearchResults = [];
     let imageSearchTimeout = null;
@@ -1641,14 +1824,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deselectAllSubfolders();
     });
     
-    // 视图切换功能
-    singleColumnViewBtn.addEventListener('click', function() {
-        switchToSingleColumnView();
-    });
-    
-    multiColumnViewBtn.addEventListener('click', function() {
-        switchToMultiColumnView();
-    });
+    // 视图切换功能已移除
     
     // 子文件夹选择功能实现
     function showSubfolderSelectPanel() {
@@ -1747,15 +1923,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function switchToSingleColumnView() {
         singleColumnViewBtn.classList.add('active');
         multiColumnViewBtn.classList.remove('active');
-        imageSearchResultsGrid.classList.remove('multi-column');
-        imageSearchResultsGrid.classList.add('full-width');
+        // 搜索结果现在统一使用described-images-grid样式，不需要切换类名
     }
     
     function switchToMultiColumnView() {
         multiColumnViewBtn.classList.add('active');
         singleColumnViewBtn.classList.remove('active');
-        imageSearchResultsGrid.classList.add('multi-column');
-        imageSearchResultsGrid.classList.remove('full-width');
+        // 搜索结果现在统一使用described-images-grid样式，不需要切换类名
     }
     
     // 搜索子文件夹中的图片（支持懒加载）
@@ -1773,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', function() {
             imageSearchLoading.style.display = 'block';
             imageSearchResultsSection.style.display = 'block';
             imageSearchResultsGrid.innerHTML = '';
-            searchResultsViewToggle.style.display = 'flex';
+            // 视图切换控件已移除
             
             // 显示搜索触发器
             const searchTrigger = document.getElementById('searchLoadMoreTrigger');
@@ -1906,25 +2080,32 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 显示该子文件夹中的图片
             groupedImages[subfolder].forEach(image => {
-                const card = document.createElement('div');
-                card.className = 'image-card';
-                
-                // 处理描述文本
-                let description = image.description || '暂无描述';
-                description = description
-                    .replace(/</g, '&lt;')
-                    .replace(/'''>|'''|>&gt;|&gt;$/g, '')
-                    .replace(/^\s+|\s+$/g, '')
-                    .replace(/\n/g, '<br>');
-                
-                // 收益率显示
-                const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
-                
-                // 对路径进行URL编码以处理中文字符
-                const encodedPath = encodeURI(image.relative_path);
+                try {
+                    const card = document.createElement('div');
+                    card.className = 'described-image-card';
+                    
+                    // 验证image对象
+                    if (!image || !image.relative_path || !image.name) {
+                        console.warn('Invalid image object:', image);
+                        return;
+                    }
+                    
+                    // 处理描述文本
+                    let description = image.description || '暂无描述';
+                    description = description
+                        .replace(/</g, '&lt;')
+                        .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                        .replace(/^\s+|\s+$/g, '')
+                        .replace(/\n/g, '<br>');
+                    
+                    // 收益率显示
+                    const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+                    
+                    // 对路径进行URL编码以处理中文字符
+                    const encodedPath = encodeURI(image.relative_path);
                 
                 card.innerHTML = `
-                    <div class="image-thumbnail">
+                    <div class="described-image-preview">
                         <object data="/gallery/serve/${encodedPath}" 
                                 type="image/svg+xml" 
                                 class="svg-object">
@@ -1932,25 +2113,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                  alt="${image.name}" loading="lazy">
                         </object>
                     </div>
-                    <div class="image-info">
-                        <div class="image-name" title="${image.name}">${image.name}</div>
-                        <div class="image-meta">
-                            <span><i class="fas fa-folder"></i> ${subfolder}</span>
-                            <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
+                    <div class="described-image-info">
+                        <div class="described-image-name" title="${image.name}">${image.name}</div>
+                        <div class="described-image-folder">
+                            <i class="fas fa-folder"></i> ${subfolder}
                         </div>
                         ${neuRetDisplay}
-                        ${image.has_description ? `<div class="image-description">
-                            <i class="fas fa-comment"></i> ${description}
-                        </div>` : ''}
+                        <div class="described-image-description">${description}</div>
                     </div>
                 `;
                 
                 // 点击查看原图
                 card.addEventListener('click', function() {
-                    window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
+                    window.open(`/gallery/viewer/${encodedPath}`, '_blank');
                 });
                 
-                imageSearchResultsGrid.appendChild(card);
+                    imageSearchResultsGrid.appendChild(card);
+                    // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
+                } catch (error) {
+                    console.error('Error creating image card:', error, image);
+                }
             });
         });
         
@@ -1980,25 +2162,32 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 直接显示所有图片
         images.forEach(image => {
-            const card = document.createElement('div');
-            card.className = 'image-card';
-            
-            // 处理描述文本
-            let description = image.description || '暂无描述';
-            description = description
-                .replace(/</g, '&lt;')
-                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
-                .replace(/^\s+|\s+$/g, '')
-                .replace(/\n/g, '<br>');
-            
-            // 收益率显示
-            const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
-            
-            // 对路径进行URL编码以处理中文字符
-            const encodedPath = encodeURI(image.relative_path);
+            try {
+                // 验证image对象
+                if (!image || !image.relative_path || !image.name) {
+                    console.warn('Invalid image object:', image);
+                    return;
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'described-image-card';
+                
+                // 处理描述文本
+                let description = image.description || '暂无描述';
+                description = description
+                    .replace(/</g, '&lt;')
+                    .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                    .replace(/^\s+|\s+$/g, '')
+                    .replace(/\n/g, '<br>');
+                
+                // 收益率显示
+                const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+                
+                // 对路径进行URL编码以处理中文字符
+                const encodedPath = encodeURI(image.relative_path);
             
             card.innerHTML = `
-                <div class="image-thumbnail">
+                <div class="described-image-preview">
                     <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
@@ -2006,25 +2195,26 @@ document.addEventListener('DOMContentLoaded', function() {
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
-                <div class="image-info">
-                    <div class="image-name" title="${image.name}">${image.name}</div>
-                    <div class="image-meta">
-                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
-                        <span><i class="fas fa-hdd"></i> ${(image.size / 1024).toFixed(1)} KB</span>
+                <div class="described-image-info">
+                    <div class="described-image-name" title="${image.name}">${image.name}</div>
+                    <div class="described-image-folder">
+                        <i class="fas fa-folder"></i> 当前文件夹
                     </div>
                     ${neuRetDisplay}
-                    ${image.description && image.description.trim() ? `<div class="image-description">
-                        <i class="fas fa-comment"></i> ${description}
-                    </div>` : ''}
+                    <div class="described-image-description">${description}</div>
                 </div>
             `;
             
-            // 点击查看原图
-            card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${image.relative_path}`, '_blank');
-            });
-            
-            imageSearchResultsGrid.appendChild(card);
+                // 点击查看原图
+                card.addEventListener('click', function() {
+                    window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+                });
+                
+                imageSearchResultsGrid.appendChild(card);
+                // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
+            } catch (error) {
+                console.error('Error creating current folder image card:', error, image);
+            }
         });
         
         console.log(`显示了 ${images.length} 张当前文件夹搜索结果图片`);
@@ -2037,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearImageSearchBtn.style.display = 'none';
         imageSearchResults = [];
         sortSearchResultsByReturnBtn.style.display = 'none';
-        searchResultsViewToggle.style.display = 'none';
+        // 视图切换控件已移除
         
         // 重置标题
         const sectionHeader = imageSearchResultsSection.querySelector('.section-header h3');
@@ -2091,37 +2281,44 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 直接显示所有图片，不分组
         images.forEach((image, index) => {
-            const card = document.createElement('div');
-            card.className = 'image-card';
-            
-            // 处理描述文本
-            let description = image.description || '暂无描述';
-            description = description
-                .replace(/</g, '&lt;')
-                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
-                .replace(/^\s+|\s+$/g, '')
-                .replace(/\n/g, '<br>');
-            
-            // 收益率显示，添加排名
-            const neuRetDisplay = image.neu_ret ? 
-                `<div class="described-image-return">
-                    <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
-                        #${index + 1}
-                    </span>
-                    💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%
-                </div>` : 
-                `<div class="described-image-return">
-                    <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
-                        #${index + 1}
-                    </span>
-                    💰 无收益率数据
-                </div>`;
-            
-            // 对路径进行URL编码以处理中文字符
-            const encodedPath = encodeURI(image.relative_path);
+            try {
+                // 验证image对象
+                if (!image || !image.relative_path || !image.name) {
+                    console.warn('Invalid image object:', image);
+                    return;
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'described-image-card';
+                
+                // 处理描述文本
+                let description = image.description || '暂无描述';
+                description = description
+                    .replace(/</g, '&lt;')
+                    .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                    .replace(/^\s+|\s+$/g, '')
+                    .replace(/\n/g, '<br>');
+                
+                // 收益率显示，添加排名
+                const neuRetDisplay = image.neu_ret ? 
+                    `<div class="described-image-return">
+                        <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                            #${index + 1}
+                        </span>
+                        💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%
+                    </div>` : 
+                    `<div class="described-image-return">
+                        <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">
+                            #${index + 1}
+                        </span>
+                        💰 无收益率数据
+                    </div>`;
+                
+                // 对路径进行URL编码以处理中文字符
+                const encodedPath = encodeURI(image.relative_path);
             
             card.innerHTML = `
-                <div class="image-thumbnail">
+                <div class="described-image-preview">
                     <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
@@ -2129,25 +2326,26 @@ document.addEventListener('DOMContentLoaded', function() {
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
-                <div class="image-info">
-                    <div class="image-name" title="${image.name}">${image.name}</div>
-                    <div class="image-meta">
-                        <span><i class="fas fa-folder"></i> ${image.subfolder}</span>
-                        <span><i class="fas fa-calendar"></i> ${formatDate(image.date)}</span>
+                <div class="described-image-info">
+                    <div class="described-image-name" title="${image.name}">${image.name}</div>
+                    <div class="described-image-folder">
+                        <i class="fas fa-folder"></i> ${image.subfolder}
                     </div>
                     ${neuRetDisplay}
-                    ${image.has_description ? `<div class="image-description">
-                        <i class="fas fa-comment"></i> ${description}
-                    </div>` : ''}
+                    <div class="described-image-description">${description}</div>
                 </div>
             `;
             
-            // 点击查看原图
-            card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
-            });
-            
-            imageSearchResultsGrid.appendChild(card);
+                // 点击查看原图
+                card.addEventListener('click', function() {
+                    window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+                });
+                
+                imageSearchResultsGrid.appendChild(card);
+                // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
+            } catch (error) {
+                console.error('Error creating sorted image card:', error, image);
+            }
         });
         
         console.log(`显示了 ${images.length} 张按收益率全局排序的搜索结果`);
@@ -2201,7 +2399,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 describedImagesLoading.style.display = 'none';
                 if (data.success) {
                     describedImagesData = data.data;
-                    displayDescribedImages(describedImagesData);
+                    // 默认按收益率排序显示
+                    sortImagesByReturn();
                 } else {
                     describedImagesGrid.innerHTML = '<p>加载失败: ' + data.message + '</p>';
                 }
@@ -2224,7 +2423,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         images.forEach(image => {
             const card = document.createElement('div');
-            card.className = 'image-card';
+            card.className = 'described-image-card';
             
             const neuRetDisplay = image.neu_ret ? `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
             
@@ -2242,7 +2441,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const encodedPath = encodeURI(image.relative_path);
             
             card.innerHTML = `
-                <div class="image-thumbnail">
+                <div class="described-image-preview">
                     <object data="/gallery/serve/${encodedPath}" 
                             type="image/svg+xml" 
                             class="svg-object">
@@ -2250,22 +2449,26 @@ document.addEventListener('DOMContentLoaded', function() {
                              alt="${image.name}" loading="lazy">
                     </object>
                 </div>
-                <div class="image-info">
-                    <div class="image-name" title="${image.name}">${image.name}</div>
-                    <div class="image-meta">
-                        <span><i class="fas fa-folder"></i> ${image.folder || '主文件夹'}</span>
+                <div class="described-image-info">
+                    <div class="described-image-name" title="${image.name}">${image.name}</div>
+                    <div class="described-image-folder">
+                        <i class="fas fa-folder"></i> ${image.folder || '主文件夹'}
                     </div>
                     ${neuRetDisplay}
-                    <div class="image-description">
-                        <i class="fas fa-comment"></i> ${description}
+                    <div class="described-image-description">
+                        ${description}
+                    </div>
+                    <div class="image-actions" style="margin-top: 10px;">
+                        <button class="btn btn-sm btn-edit-desc" 
+                                data-folder="${image.folder || ''}" 
+                                data-filename="${image.name}" 
+                                data-description="${(image.description || '').replace(/"/g, '&quot;')}"
+                                style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-edit"></i> 编辑描述
+                        </button>
                     </div>
                 </div>
             `;
-            
-            // 点击查看原图
-            card.addEventListener('click', function() {
-                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
-            });
             
             describedImagesGrid.appendChild(card);
         });
@@ -2386,6 +2589,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${image.has_description ? `<div class="image-description">
                         <i class="fas fa-comment"></i> ${description}
                     </div>` : ''}
+                    <div class="image-actions" style="margin-top: 10px;">
+                        <button class="btn btn-sm btn-edit-desc" 
+                                data-folder="${image.subfolder}" 
+                                data-filename="${image.name}" 
+                                data-description="${(image.description || '').replace(/"/g, '&quot;')}"
+                                style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-edit"></i> 编辑描述
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -2395,6 +2607,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             imageSearchResultsGrid.appendChild(card);
+            // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
         });
         
         console.log(`显示了 ${images.length} 张按收益率跨文件夹排序的图片`);
@@ -2594,6 +2807,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${image.has_description ? `<div class="image-description">
                         <i class="fas fa-comment"></i> ${description}
                     </div>` : ''}
+                    <div class="image-actions" style="margin-top: 10px;">
+                        <button class="btn btn-sm btn-edit-desc" 
+                                data-folder="${image.subfolder}" 
+                                data-filename="${image.name}" 
+                                data-description="${(image.description || '').replace(/"/g, '&quot;')}"
+                                style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-edit"></i> 编辑描述
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -2603,6 +2825,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             parentImageViewGrid.appendChild(card);
+            // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
         });
         
         console.log(`显示了 ${images.length} 张同名图片`);
@@ -2613,50 +2836,167 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendImageSearchResults(newImages) {
         if (!newImages || newImages.length === 0) return;
         
+        let successCount = 0;
         newImages.forEach(image => {
             const card = createImageCardFromSearchResult(image);
-            imageSearchResultsGrid.appendChild(card);
+            if (card) {
+                imageSearchResultsGrid.appendChild(card);
+                // 移除高度调整 - 使用CSS的min-height和object-fit自然处理
+                successCount++;
+            }
         });
         
-        console.log(`追加了 ${newImages.length} 张搜索结果图片`);
+        console.log(`追加了 ${successCount} 张搜索结果图片 (共${newImages.length}张)`);
     }
     
+    // 调整图片容器高度以匹配图片实际高度
+    function adjustImageThumbnailHeight(card) {
+        // 支持两种不同的样式结构
+        const thumbnail = card.querySelector('.image-thumbnail') || card.querySelector('.described-image-preview');
+        const img = card.querySelector('.image-thumbnail img, .image-thumbnail object') || 
+                   card.querySelector('.described-image-preview img, .described-image-preview object');
+        
+        if (!thumbnail || !img) return;
+        
+        function updateHeight() {
+            try {
+                // 重置高度让图片自然显示
+                if (thumbnail) {
+                    thumbnail.style.height = 'auto';
+                }
+                
+                // 稍后获取图片的实际渲染高度
+                setTimeout(() => {
+                    if (!img || !thumbnail) return;
+                    
+                    const actualHeight = img.offsetHeight || img.getBoundingClientRect().height;
+                    
+                    if (actualHeight > 0) {
+                        thumbnail.style.height = actualHeight + 'px';
+                    } else {
+                        // 如果获取不到高度，尝试其他方法
+                        if (img.tagName === 'OBJECT') {
+                            try {
+                                const svgDoc = img.contentDocument;
+                                if (svgDoc) {
+                                    const svg = svgDoc.documentElement;
+                                    if (svg) {
+                                        const rect = svg.getBoundingClientRect();
+                                        if (rect.height > 0) {
+                                            thumbnail.style.height = rect.height + 'px';
+                                            return;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // 跨域问题或其他错误，忽略
+                                console.warn('SVG content access failed:', e);
+                            }
+                        } else if (img.tagName === 'IMG' && img.complete && img.naturalHeight > 0) {
+                            // 根据容器宽度和图片原始比例计算高度
+                            const containerWidth = thumbnail.offsetWidth;
+                            if (containerWidth > 0 && img.naturalWidth > 0) {
+                                const aspectRatio = img.naturalHeight / img.naturalWidth;
+                                const calculatedHeight = containerWidth * aspectRatio;
+                                thumbnail.style.height = calculatedHeight + 'px';
+                            }
+                        }
+                    }
+                }, 50);
+            } catch (error) {
+                console.warn('Error in updateHeight:', error);
+            }
+        }
+        
+        // 立即尝试更新高度
+        updateHeight();
+        
+        // 为图片加载事件添加监听器
+        try {
+            if (img && img.tagName === 'IMG') {
+                img.addEventListener('load', updateHeight);
+                img.addEventListener('error', function() {
+                    // 如果图片加载失败，设置合理的高度
+                    if (thumbnail) {
+                        thumbnail.style.height = '200px';
+                    }
+                });
+            } else if (img && img.tagName === 'OBJECT') {
+                img.addEventListener('load', updateHeight);
+                // 延迟检查，给object内容时间加载
+                setTimeout(updateHeight, 100);
+                setTimeout(updateHeight, 500);
+                setTimeout(updateHeight, 1000);
+            }
+            
+            // 窗口大小改变时重新调整
+            if (thumbnail && 'ResizeObserver' in window) {
+                const resizeObserver = new ResizeObserver(() => {
+                    updateHeight();
+                });
+                resizeObserver.observe(thumbnail);
+            }
+        } catch (error) {
+            console.warn('Error setting up image height adjustment:', error);
+        }
+    }
+
     // 从搜索结果创建图片卡片
     function createImageCardFromSearchResult(image) {
-        const card = document.createElement('div');
-        card.className = 'image-card';
-        
-        // 处理收益率显示
-        const neuRetDisplay = image.neu_ret ? 
-            `<span class="neu-ret-value">${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
-        
-        // 对路径进行URL编码
-        const encodedPath = encodeURI(image.relative_path);
+        try {
+            // 验证image对象
+            if (!image || !image.relative_path || !image.name) {
+                console.warn('Invalid image object:', image);
+                return null;
+            }
+            
+            const card = document.createElement('div');
+            card.className = 'described-image-card';
+            
+            // 处理描述文本
+            let description = image.description || '暂无描述';
+            description = description
+                .replace(/</g, '&lt;')
+                .replace(/'''>|'''|>&gt;|&gt;$/g, '')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/\n/g, '<br>');
+            
+            // 处理收益率显示
+            const neuRetDisplay = image.neu_ret ? 
+                `<div class="described-image-return">💰 收益率: ${(image.neu_ret * 100).toFixed(2)}%</div>` : '';
+            
+            // 对路径进行URL编码
+            const encodedPath = encodeURI(image.relative_path);
         
         card.innerHTML = `
-            <div class="image-wrapper">
-                ${neuRetDisplay}
-                <img src="/gallery/serve/${encodedPath}" 
-                     alt="${image.name}" 
-                     loading="lazy">
+            <div class="described-image-preview">
+                <object data="/gallery/serve/${encodedPath}" 
+                        type="image/svg+xml" 
+                        class="svg-object">
+                    <img src="/gallery/serve/${encodedPath}" 
+                         alt="${image.name}" loading="lazy">
+                </object>
             </div>
-            <div class="image-info">
-                <div class="image-name">${image.name}</div>
-                ${image.subfolder ? `<div class="image-subfolder">来自: ${image.subfolder}</div>` : ''}
-                ${image.description ? `<div class="image-description">${image.description}</div>` : ''}
-                <div class="image-meta">
-                    <span class="image-date">${formatDate(image.date)}</span>
-                    <span class="image-size">${image.size || '未知'}</span>
+            <div class="described-image-info">
+                <div class="described-image-name" title="${image.name}">${image.name}</div>
+                <div class="described-image-folder">
+                    <i class="fas fa-folder"></i> ${image.subfolder || '当前文件夹'}
                 </div>
+                ${neuRetDisplay}
+                <div class="described-image-description">${description}</div>
             </div>
         `;
         
-        // 添加点击查看原图事件
-        card.addEventListener('click', function() {
-            window.open(`/gallery/viewer/${encodedPath}`, '_blank');
-        });
-        
-        return card;
+            // 添加点击查看原图事件
+            card.addEventListener('click', function() {
+                window.open(`/gallery/viewer/${encodedPath}`, '_blank');
+            });
+            
+            return card;
+        } catch (error) {
+            console.error('Error creating image card from search result:', error, image);
+            return null;
+        }
     }
     
     // 设置搜索无限滚动观察器
@@ -2699,6 +3039,77 @@ document.addEventListener('DOMContentLoaded', function() {
             if (parentFloatingMenu && parentFloatingMenu.classList.contains('open')) {
                 parentFloatingMenu.classList.remove('open');
             }
+            // 关闭悬浮搜索窗
+            const floatingSearchWindow = document.getElementById('floatingSearchWindow');
+            if (floatingSearchWindow && floatingSearchWindow.classList.contains('show')) {
+                floatingSearchWindow.classList.remove('show');
+            }
+        }
+    });
+    
+    // 悬浮搜索窗功能
+    const floatingSearchBtn = document.getElementById('floatingSearchBtn');
+    const floatingSearchWindow = document.getElementById('floatingSearchWindow');
+    const floatingSearchClose = document.getElementById('floatingSearchClose');
+    const floatingSearchInput = document.getElementById('floatingSearchInput');
+    const floatingImageSearchInput = document.getElementById('floatingImageSearchInput');
+    const floatingToggleSubfolderSelect = document.getElementById('floatingToggleSubfolderSelect');
+    const floatingClearImageSearch = document.getElementById('floatingClearImageSearch');
+    
+    // 打开悬浮搜索窗
+    floatingSearchBtn.addEventListener('click', function() {
+        floatingSearchWindow.classList.add('show');
+    });
+    
+    // 关闭悬浮搜索窗
+    floatingSearchClose.addEventListener('click', function() {
+        floatingSearchWindow.classList.remove('show');
+    });
+    
+    // 悬浮搜索功能 - 子文件夹搜索（Enter键搜索）
+    floatingSearchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.toLowerCase();
+            filterSubfolders(query);
+        }
+    });
+    
+    // 悬浮搜索功能 - 图片搜索（Enter键搜索）
+    floatingImageSearchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim();
+            
+            if (query) {
+                document.getElementById('imageSearchInput').value = query;
+                searchImagesInSubfolders(query, 1);
+                floatingClearImageSearch.style.display = 'inline-block';
+            } else {
+                hideImageSearchResults();
+                floatingClearImageSearch.style.display = 'none';
+            }
+        }
+    });
+    
+    // 悬浮搜索 - 清除图片搜索
+    floatingClearImageSearch.addEventListener('click', function() {
+        floatingImageSearchInput.value = '';
+        document.getElementById('imageSearchInput').value = '';
+        hideImageSearchResults();
+        this.style.display = 'none';
+    });
+    
+    // 悬浮搜索 - 选择搜索范围
+    floatingToggleSubfolderSelect.addEventListener('click', function() {
+        // 触发主搜索的选择范围功能
+        document.getElementById('toggleSubfolderSelect').click();
+        // 关闭悬浮窗
+        floatingSearchWindow.classList.remove('show');
+    });
+    
+    // 点击窗口外部关闭悬浮搜索窗
+    document.addEventListener('click', function(e) {
+        if (!floatingSearchWindow.contains(e.target) && !floatingSearchBtn.contains(e.target)) {
+            floatingSearchWindow.classList.remove('show');
         }
     });
 });
