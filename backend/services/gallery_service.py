@@ -758,6 +758,16 @@ class GalleryService:
             folder_path = self.images_root / folder_name
             described_images = []
             
+            # 读取收益率数据
+            neu_ret_file = folder_path / 'neu_rets.json'
+            neu_ret_data = {}
+            if neu_ret_file.exists():
+                try:
+                    with open(neu_ret_file, 'r', encoding='utf-8') as f:
+                        neu_ret_data = json.load(f)
+                except (json.JSONDecodeError, OSError) as e:
+                    logger.warning(f"无法读取neu_rets.json文件 {neu_ret_file}: {e}")
+            
             # 主要方案：读取隐藏的.descriptions.json文件
             desc_file = folder_path / ".descriptions.json"
             if desc_file.exists():
@@ -771,6 +781,9 @@ class GalleryService:
                             image_info = self._get_image_info(image_path, folder_path)
                             if image_info:
                                 image_info['description'] = description
+                                # 添加收益率信息
+                                file_key = filename.rsplit('.', 1)[0]
+                                image_info['neu_ret'] = neu_ret_data.get(file_key, 0)
                                 described_images.append(image_info)
                 except (json.JSONDecodeError, OSError) as e:
                     logger.debug(f"读取隐藏描述文件失败 {desc_file}: {e}")
@@ -789,12 +802,15 @@ class GalleryService:
                                 image_info = self._get_image_info(image_path, folder_path)
                                 if image_info:
                                     image_info['description'] = description
+                                    # 添加收益率信息
+                                    file_key = filename.rsplit('.', 1)[0]
+                                    image_info['neu_ret'] = neu_ret_data.get(file_key, 0)
                                     described_images.append(image_info)
                     except (json.JSONDecodeError, OSError) as e:
                         logger.debug(f"读取统一描述文件失败 {desc_file_public}: {e}")
             
-            # 按名称排序
-            described_images.sort(key=lambda x: x['name'].lower())
+            # 按收益率从高到低排序
+            described_images.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
             return described_images
             
         except Exception as e:

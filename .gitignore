@@ -1,0 +1,101 @@
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 分发/打包相关
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 项目特定文件
+# 进程ID文件
+*.pid
+daemon.pid
+gallery.pid
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件和缓存
+tmp/
+temp/
+*.tmp
+*.cache
+
+# 用户上传的文件和生成的图片
+uploads/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+!static/**/*.png
+!static/**/*.jpg
+!static/**/*.jpeg
+!static/**/*.gif
+!static/**/*.bmp
+!static/**/*.svg
+
+# 配置文件中的敏感信息（如果有）
+config/local_settings.py
+.secrets
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 测试覆盖率报告
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# 文档构建输出
+docs/_build/

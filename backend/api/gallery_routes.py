@@ -324,24 +324,14 @@ def api_described_images(folder_name):
             subfolder_path = f"{folder_name}/{subfolder['name']}"
             subfolder_images = gallery_service.get_described_images(subfolder_path)
             
-            # 为每个图片添加文件夹信息和收益率信息
+            # 为每个图片添加文件夹信息
             for img in subfolder_images:
                 img['folder'] = subfolder['name']
-                # 尝试获取收益率信息
-                try:
-                    img_folder_path = gallery_service.images_root / subfolder_path
-                    neu_ret_file = img_folder_path / 'neu_rets.json'
-                    if neu_ret_file.exists():
-                        with open(neu_ret_file, 'r', encoding='utf-8') as f:
-                            neu_ret_data = json.load(f)
-                            file_key = img['name'].rsplit('.', 1)[0]
-                            img['neu_ret'] = neu_ret_data.get(file_key, 0)
-                    else:
-                        img['neu_ret'] = 0
-                except Exception:
-                    img['neu_ret'] = 0
                 
             images.extend(subfolder_images)
+        
+        # 对所有图片按收益率进行全局排序
+        images.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
         
         return jsonify({
             'success': True,
