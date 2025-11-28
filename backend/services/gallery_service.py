@@ -4,6 +4,7 @@ Gallery 服务层
 """
 import os
 import json
+import sqlite3
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
@@ -26,7 +27,46 @@ class GalleryService:
         self.images_root = Path(IMAGES_ROOT)
         if not self.images_root.exists():
             logger.warning(f"图片根目录不存在: {self.images_root}")
-            
+
+    def _load_neu_ret_data(self, folder_path: Path) -> Dict[str, float]:
+        """
+        加载收益率数据（优先从SQLite数据库读取，如果不存在则从JSON文件读取）
+
+        Args:
+            folder_path: 文件夹路径
+
+        Returns:
+            收益率数据字典，键为图片名（不含扩展名），值为收益率数值
+        """
+        neu_ret_data = {}
+
+        # 1. 优先尝试从 SQLite 数据库读取
+        db_file = folder_path / 'neu_rets.db'
+        if db_file.exists():
+            try:
+                conn = sqlite3.connect(str(db_file))
+                cursor = conn.cursor()
+                cursor.execute("SELECT factor_name, neu_ret FROM factor_returns")
+                rows = cursor.fetchall()
+                neu_ret_data = {row[0]: row[1] for row in rows}
+                conn.close()
+                logger.debug(f"从 SQLite 数据库加载收益率数据: {db_file}, 共 {len(neu_ret_data)} 条记录")
+                return neu_ret_data
+            except Exception as e:
+                logger.warning(f"无法从 SQLite 数据库读取 {db_file}: {e}")
+
+        # 2. 如果数据库不存在或读取失败，尝试从 JSON 文件读取（fallback）
+        json_file = folder_path / 'neu_rets.json'
+        if json_file.exists():
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    neu_ret_data = json.load(f)
+                logger.debug(f"从 JSON 文件加载收益率数据: {json_file}, 共 {len(neu_ret_data)} 条记录")
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning(f"无法读取 neu_rets.json 文件 {json_file}: {e}")
+
+        return neu_ret_data
+
     def get_folder_list(self) -> List[Dict]:
         """获取文件夹列表"""
         try:
@@ -256,16 +296,11 @@ class GalleryService:
                             file_info['description'] = None
                             file_info['has_description'] = False
                         
-                        # 添加收益率信息
+                        # 添加收益率信息（优先从SQLite数据库读取，其次从JSON文件读取）
                         try:
-                            neu_ret_file = item.parent / 'neu_rets.json'
-                            if neu_ret_file.exists():
-                                with open(neu_ret_file, 'r', encoding='utf-8') as f:
-                                    neu_ret_data = json.load(f)
-                                    file_key = item.name.rsplit('.', 1)[0]
-                                    file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
-                            else:
-                                file_info['neu_ret'] = 0
+                            neu_ret_data = self._load_neu_ret_data(item.parent)
+                            file_key = item.name.rsplit('.', 1)[0]
+                            file_info['neu_ret'] = neu_ret_data.get(file_key, 0)
                         except Exception:
                             file_info['neu_ret'] = 0
                         
@@ -845,25 +880,18 @@ class GalleryService:
             return False
 
     def _sort_by_neu_ret(self, folder_path: Path, images: List[Dict]) -> List[Dict]:
-        """根据neu_rets.json中的数值排序"""
+        """根据收益率数据排序（优先从SQLite数据库读取，其次从JSON文件读取）"""
         try:
-            neu_ret_file = folder_path / 'neu_rets.json'
-            neu_ret_data = {}
-            
-            if neu_ret_file.exists():
-                try:
-                    with open(neu_ret_file, 'r', encoding='utf-8') as f:
-                        neu_ret_data = json.load(f)
-                except (json.JSONDecodeError, OSError) as e:
-                    logger.warning(f"无法读取neu_rets.json文件 {neu_ret_file}: {e}")
-            
+            # 加载收益率数据（优先从SQLite数据库，其次从JSON文件）
+            neu_ret_data = self._load_neu_ret_data(folder_path)
+
             # 为每个图片添加neu_ret值
             for image_info in images:
                 file_name = image_info['name']
                 # 去掉扩展名作为key
                 file_key = file_name.rsplit('.', 1)[0]
                 image_info['neu_ret'] = neu_ret_data.get(file_key, 0)
-            
+
             # 按neu_ret值从大到小排序
             images.sort(key=lambda x: x.get('neu_ret', 0), reverse=True)
             return images
@@ -888,22 +916,14 @@ class GalleryService:
                 if not subfolder.is_dir() or subfolder.name.startswith('.'):
                     continue
                 
-                # 读取子文件夹的收益率数据
-                neu_ret_file = subfolder / 'neu_rets.json'
-                neu_ret_data = {}
-                
-                if neu_ret_file.exists():
-                    try:
-                        with open(neu_ret_file, 'r', encoding='utf-8') as f:
-                            neu_ret_data = json.load(f)
-                    except (json.JSONDecodeError, OSError) as e:
-                        logger.warning(f"无法读取neu_rets.json文件 {neu_ret_file}: {e}")
-                
+                # 读取子文件夹的收益率数据（优先从SQLite数据库读取，其次从JSON文件读取）
+                neu_ret_data = self._load_neu_ret_data(subfolder)
+
                 # 收集子文件夹中的所有图片
                 for item in subfolder.rglob('*'):
                     if not item.is_file() or not is_image_file(item):
                         continue
-                    
+
                     image_info = self._get_image_info(item, parent_path)
                     if image_info:
                         # 添加子文件夹信息
@@ -911,11 +931,11 @@ class GalleryService:
                         subfolder_path = item.parent.relative_to(parent_path)
                         image_info['subfolder_path'] = str(subfolder_path)
                         image_info['parent_folder'] = parent_folder
-                        
+
                         # 添加收益率信息
                         file_key = item.name.rsplit('.', 1)[0]
                         image_info['neu_ret'] = neu_ret_data.get(file_key, 0)
-                        
+
                         all_images.append(image_info)
             
             # 按收益率从大到小排序
