@@ -295,6 +295,8 @@ def api_set_description(folder_name, filename):
         description = data.get('description', '')
         success = gallery_service.set_image_description(folder_name, filename, description)
         if success:
+            # 发送WebSocket通知，实时更新所有客户端
+            emit_description_update(folder_name, filename, description)
             return jsonify({
                 'success': True,
                 'message': '描述已保存'
@@ -352,6 +354,8 @@ def api_set_folder_description(folder_name):
         description = data.get('description', '')
         success = gallery_service.set_folder_description(folder_name, description)
         if success:
+            # 发送WebSocket通知，实时更新所有客户端
+            emit_folder_description_update(folder_name, description)
             return jsonify({
                 'success': True,
                 'message': '文件夹描述已保存'
@@ -504,3 +508,31 @@ def api_search_in_selected_subfolders(parent_folder):
             'success': False,
             'message': str(e)
         }), 500
+
+
+# WebSocket 通知函数
+def emit_description_update(folder_name, filename, description):
+    """发送描述更新通知到所有客户端"""
+    from backend.app import socketio
+    try:
+        socketio.emit('description_updated', {
+            'folder_name': folder_name,
+            'filename': filename,
+            'description': description
+        }, broadcast=True)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f'发送描述更新通知失败: {e}')
+
+
+def emit_folder_description_update(folder_name, description):
+    """发送文件夹描述更新通知到所有客户端"""
+    from backend.app import socketio
+    try:
+        socketio.emit('folder_description_updated', {
+            'folder_name': folder_name,
+            'description': description
+        }, broadcast=True)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f'发送文件夹描述更新通知失败: {e}')

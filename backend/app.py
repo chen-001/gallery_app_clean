@@ -14,6 +14,9 @@ from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+# 创建全局SocketIO实例
+socketio = SocketIO(cors_allowed_origins="*")
+
 # 设置路径
 FRONTEND_DIR = PROJECT_ROOT / 'frontend'
 
@@ -41,11 +44,11 @@ def create_app(config_name=None):
     
     # 加载配置
     app.config.from_object(config[config_name])
-    
+
     # 初始化扩展
     CORS(app)
-    socketio = SocketIO(app, cors_allowed_origins="*")
-    
+    socketio.init_app(app, async_mode='threading', cors_allowed_origins="*")
+
     # 注册蓝图
     register_blueprints(app)
     

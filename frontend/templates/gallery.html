@@ -1187,6 +1187,26 @@ function waitForMarked(callback) {
 <script>
 // 描述编辑功能
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化WebSocket连接，用于接收实时更新
+    const socket = io();
+    const currentFolderName = '{{ folder_name }}';
+
+    // 监听图片描述更新
+    socket.on('description_updated', function(data) {
+        // 只处理当前文件夹的更新
+        if (data.folder_name === currentFolderName) {
+            updateImageDescriptionDisplay(data.filename, data.description);
+        }
+    });
+
+    // 监听文件夹描述更新
+    socket.on('folder_description_updated', function(data) {
+        // 只处理当前文件夹的更新
+        if (data.folder_name === currentFolderName) {
+            updateFolderDescriptionDisplay(data.description);
+        }
+    });
+
     const modal = document.getElementById('descriptionModal');
     const filenameInput = document.getElementById('imageFilename');
     const descriptionTextarea = document.getElementById('imageDescription');
@@ -1404,7 +1424,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
+    // 更新文件夹描述显示
+    function updateFolderDescriptionDisplay(newDescription) {
+        const folderDescElement = document.getElementById('folderDescriptionDisplay');
+        if (folderDescElement) {
+            if (newDescription && newDescription.trim() !== '') {
+                folderDescElement.innerHTML = newDescription;
+                folderDescElement.style.display = 'block';
+            } else {
+                folderDescElement.style.display = 'none';
+            }
+        }
+    }
+
     saveBtn.addEventListener('click', function() {
         saveImageDescription();
     });

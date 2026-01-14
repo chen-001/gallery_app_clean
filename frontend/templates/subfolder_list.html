@@ -1449,6 +1449,18 @@ function waitForMarked(callback) {
 <script>
 // Markdown 渲染和编辑功能
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化WebSocket连接，用于接收实时更新
+    const socket = io();
+    const currentFolderName = '{{ folder_name }}';
+
+    // 监听文件夹描述更新
+    socket.on('folder_description_updated', function(data) {
+        // 只处理当前文件夹的更新
+        if (data.folder_name === currentFolderName) {
+            updateFolderDescriptionDisplay(data.description);
+        }
+    });
+
     // Markdown 渲染功能
     function renderMarkdown() {
         console.log('renderMarkdown called');
@@ -3080,7 +3092,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`加载搜索结果第 ${nextPage} 页`);
         searchImagesInSubfolders(currentSearchQuery, nextPage);
     }
-    
+
+    // 更新文件夹描述显示
+    function updateFolderDescriptionDisplay(newDescription) {
+        const folderDescElement = document.getElementById('folderDescriptionDisplay');
+        if (folderDescElement) {
+            if (newDescription && newDescription.trim() !== '') {
+                // 更新data-markdown属性
+                folderDescElement.setAttribute('data-markdown', newDescription);
+                // 重新渲染Markdown
+                renderMarkdown();
+            } else {
+                folderDescElement.style.display = 'none';
+            }
+        }
+    }
+
     // 初始化搜索无限滚动
     setupSearchInfiniteScroll();
     
