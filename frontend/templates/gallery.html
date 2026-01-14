@@ -1193,9 +1193,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 监听图片描述更新
     socket.on('description_updated', function(data) {
-        // 只处理当前文件夹的更新
-        if (data.folder_name === currentFolderName) {
-            updateImageDescriptionDisplay(data.filename, data.description);
+        // 只处理当前文件夹或其子文件夹的更新
+        // data.folder_name可能是"被动者背后/被动者背后15s"，需要检查是否以currentFolderName开头
+        if (data.folder_name === currentFolderName || data.folder_name.startsWith(currentFolderName + '/')) {
+            updateImageDescriptionDisplay(data.folder_name, data.filename, data.description);
         }
     });
 
@@ -1344,7 +1345,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeModal();
                 }
                 // 更新页面中对应图片的描述显示，而不重新加载整个页面
-                updateImageDescriptionDisplay(currentFilename, description);
+                updateImageDescriptionDisplay(currentFolder, currentFilename, description);
                 updateImageSaveStatus('已保存');
             } else {
                 if (!silent) alert('保存失败: ' + data.message);
@@ -1381,17 +1382,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 更新页面中对应图片的描述显示
-    function updateImageDescriptionDisplay(filename, newDescription) {
+    function updateImageDescriptionDisplay(folderName, filename, newDescription) {
         // 查找对应的图片卡片
         const imageCards = document.querySelectorAll('.image-card');
-        
+
         imageCards.forEach(card => {
-            // 查找图片名称元素
-            const imageNameElement = card.querySelector('.image-name');
-            if (imageNameElement && imageNameElement.textContent === filename) {
+            // 查找编辑按钮，通过data-folder和data-filename精确匹配
+            const editBtn = card.querySelector('.btn-edit-desc');
+            if (editBtn &&
+                editBtn.dataset.folder === folderName &&
+                editBtn.dataset.filename === filename) {
                 // 找到对应的图片卡片
                 let descriptionElement = card.querySelector('.image-description');
-                
+
                 if (newDescription && newDescription.trim() !== '') {
                     // 有描述内容
                     if (descriptionElement) {
@@ -1402,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         descriptionElement = document.createElement('div');
                         descriptionElement.className = 'image-description';
                         descriptionElement.innerHTML = '<i class="fas fa-comment"></i> ' + newDescription;
-                        
+
                         // 插入到图片信息区域中，在image-actions之前
                         const imageActionsElement = card.querySelector('.image-actions');
                         if (imageActionsElement) {
@@ -1415,12 +1418,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         descriptionElement.remove();
                     }
                 }
-                
+
                 // 更新编辑按钮的data-description属性
-                const editBtn = card.querySelector('.btn-edit-desc');
-                if (editBtn) {
-                    editBtn.setAttribute('data-description', newDescription || '');
-                }
+                editBtn.setAttribute('data-description', newDescription || '');
             }
         });
     }
