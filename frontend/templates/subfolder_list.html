@@ -1408,6 +1408,34 @@ kbd {
         </div>
     </div>
 </div>
+
+<!-- 描述编辑模态框 -->
+<div class="modal" id="descriptionModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>编辑图片描述</h3>
+            <span class="modal-close" id="descModalClose">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="imageFilename">图片名称:</label>
+                <input type="text" id="imageFilename" readonly>
+            </div>
+            <div class="form-group">
+                <label for="imageDescription">描述内容:</label>
+                <div style="margin-bottom: 8px; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;">
+                    <span>自动保存已开启</span>
+                    <span id="imageSaveStatus" class="save-status">已保存</span>
+                </div>
+                <textarea id="imageDescription" rows="4" placeholder="请输入图片描述..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelDesc">取消</button>
+            <button class="btn btn-primary" id="saveDesc">保存</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -1760,6 +1788,118 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 页面加载完成后渲染 markdown
     renderMarkdown();
+
+    // ========== 图片描述编辑功能 ==========
+    const descriptionModal = document.getElementById('descriptionModal');
+    const imageFilenameInput = document.getElementById('imageFilename');
+    const imageDescriptionTextarea = document.getElementById('imageDescription');
+    const saveDescBtn = document.getElementById('saveDesc');
+    const cancelDescBtn = document.getElementById('cancelDesc');
+    const descModalCloseBtn = document.getElementById('descModalClose');
+    
+    let currentImageFolder = '';
+    let currentImageFilename = '';
+    
+    // 打开描述编辑模态框
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit-desc')) {
+            const btn = e.target.closest('.btn-edit-desc');
+            currentImageFolder = btn.dataset.folder;
+            currentImageFilename = btn.dataset.filename;
+            const currentDescription = btn.dataset.description || '';
+            
+            imageFilenameInput.value = currentImageFilename;
+            imageDescriptionTextarea.value = currentDescription;
+            descriptionModal.style.display = 'flex';
+        }
+    });
+    
+    // 关闭描述编辑模态框
+    function closeDescriptionModal() {
+        descriptionModal.style.display = 'none';
+        currentImageFolder = '';
+        currentImageFilename = '';
+    }
+    
+    descModalCloseBtn.addEventListener('click', closeDescriptionModal);
+    cancelDescBtn.addEventListener('click', closeDescriptionModal);
+    
+    // 点击模态框外部关闭
+    descriptionModal.addEventListener('click', function(e) {
+        if (e.target === descriptionModal) {
+            closeDescriptionModal();
+        }
+    });
+    
+    // 保存图片描述
+    function saveImageDescription(silent = false) {
+        if (!currentImageFolder || !currentImageFilename) {
+            if (!silent) alert('参数错误');
+            return;
+        }
+        
+        const description = imageDescriptionTextarea.value.trim();
+        
+        // 发送保存请求
+        fetch(`/gallery/api/description/${currentImageFolder}/${currentImageFilename}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (!silent) {
+                    closeDescriptionModal();
+                    // 刷新有描述的图片区域
+                    loadDescribedImages();
+                }
+                updateImageSaveStatus('已保存');
+            } else {
+                if (!silent) alert('保存失败: ' + data.message);
+                updateImageSaveStatus('保存失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (!silent) alert('保存时发生错误');
+            updateImageSaveStatus('保存失败');
+        });
+    }
+    
+    saveDescBtn.addEventListener('click', saveImageDescription);
+    
+    // 自动保存图片描述（防抖）
+    const autoSaveImageDescription = debounce(function() {
+        updateImageSaveStatus('保存中...');
+        saveImageDescription(true);
+    }, 2000);
+    
+    // 更新图片保存状态
+    function updateImageSaveStatus(status) {
+        const saveStatus = document.getElementById('imageSaveStatus');
+        if (saveStatus) {
+            saveStatus.textContent = status;
+            saveStatus.className = 'save-status';
+            if (status === '已保存') {
+                saveStatus.classList.add('saved');
+            } else if (status === '保存中...') {
+                saveStatus.classList.add('saving');
+            } else if (status === '保存失败') {
+                saveStatus.classList.add('error');
+            }
+        }
+    }
+    
+    // 图片描述编辑框的输入事件
+    imageDescriptionTextarea.addEventListener('input', function() {
+        updateImageSaveStatus('未保存');
+        autoSaveImageDescription();
+    });
     
     // 图片搜索功能
     const imageSearchInput = document.getElementById('imageSearchInput');
@@ -2522,7 +2662,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.folder || ''}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
@@ -2653,7 +2793,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>` : ''}
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.subfolder}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
@@ -2871,7 +3011,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>` : ''}
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.subfolder}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
