@@ -506,6 +506,44 @@ kbd {
     box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #fff;
 }
 
+/* 粘贴图片遮罩层样式 */
+.editor-wrapper {
+    position: relative;
+}
+
+.paste-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 123, 255, 0.1);
+    border: 3px dashed #007bff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.paste-message {
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.paste-message i {
+    font-size: 20px;
+}
+
 /* 画廊控件样式 */
 .gallery-controls {
     background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
@@ -1127,10 +1165,18 @@ kbd {
             <div class="form-group">
                 <label for="folderDescription">文件夹描述:</label>
                 <div style="margin-bottom: 8px; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;">
-                    <span>支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进</span>
+                    <span>支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进 | <strong>直接粘贴图片</strong></span>
                     <span id="saveStatus" class="save-status">已保存</span>
                 </div>
-                <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)" style="min-height: 70vh; font-size: 14px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;"></textarea>
+                <div class="editor-wrapper" style="position: relative;">
+                    <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)" style="min-height: 70vh; font-size: 14px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;"></textarea>
+                    <div id="pasteOverlay" class="paste-overlay" style="display: none;">
+                        <div class="paste-message">
+                            <i class="fas fa-image"></i>
+                            <span>粘贴图片中...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>统计信息:</label>
@@ -1193,9 +1239,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 监听图片描述更新
     socket.on('description_updated', function(data) {
-        // 只处理当前文件夹的更新
-        if (data.folder_name === currentFolderName) {
-            updateImageDescriptionDisplay(data.filename, data.description);
+        // 只处理当前文件夹或其子文件夹的更新
+        // data.folder_name可能是"被动者背后/被动者背后15s"，需要检查是否以currentFolderName开头
+        if (data.folder_name === currentFolderName || data.folder_name.startsWith(currentFolderName + '/')) {
+            updateImageDescriptionDisplay(data.folder_name, data.filename, data.description);
         }
     });
 
@@ -1344,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeModal();
                 }
                 // 更新页面中对应图片的描述显示，而不重新加载整个页面
-                updateImageDescriptionDisplay(currentFilename, description);
+                updateImageDescriptionDisplay(currentFolder, currentFilename, description);
                 updateImageSaveStatus('已保存');
             } else {
                 if (!silent) alert('保存失败: ' + data.message);
@@ -1381,17 +1428,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 更新页面中对应图片的描述显示
-    function updateImageDescriptionDisplay(filename, newDescription) {
+    function updateImageDescriptionDisplay(folderName, filename, newDescription) {
         // 查找对应的图片卡片
         const imageCards = document.querySelectorAll('.image-card');
-        
+
         imageCards.forEach(card => {
-            // 查找图片名称元素
-            const imageNameElement = card.querySelector('.image-name');
-            if (imageNameElement && imageNameElement.textContent === filename) {
+            // 查找编辑按钮，通过data-folder和data-filename精确匹配
+            const editBtn = card.querySelector('.btn-edit-desc');
+            if (editBtn &&
+                editBtn.dataset.folder === folderName &&
+                editBtn.dataset.filename === filename) {
                 // 找到对应的图片卡片
                 let descriptionElement = card.querySelector('.image-description');
-                
+
                 if (newDescription && newDescription.trim() !== '') {
                     // 有描述内容
                     if (descriptionElement) {
@@ -1402,7 +1451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         descriptionElement = document.createElement('div');
                         descriptionElement.className = 'image-description';
                         descriptionElement.innerHTML = '<i class="fas fa-comment"></i> ' + newDescription;
-                        
+
                         // 插入到图片信息区域中，在image-actions之前
                         const imageActionsElement = card.querySelector('.image-actions');
                         if (imageActionsElement) {
@@ -1415,12 +1464,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         descriptionElement.remove();
                     }
                 }
-                
+
                 // 更新编辑按钮的data-description属性
-                const editBtn = card.querySelector('.btn-edit-desc');
-                if (editBtn) {
-                    editBtn.setAttribute('data-description', newDescription || '');
-                }
+                editBtn.setAttribute('data-description', newDescription || '');
             }
         });
     }
@@ -1570,6 +1616,161 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSaveStatus('未保存');
         autoSaveFolderDescription();
     });
+    
+    // ========== 粘贴图片功能 ==========
+    const pasteOverlay = document.getElementById('pasteOverlay');
+    let isUploadingImage = false;
+    
+    // 处理粘贴事件
+    folderDescriptionTextarea.addEventListener('paste', function(e) {
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+        
+        // 检查是否有图片文件
+        const items = clipboardData.items;
+        let hasImage = false;
+        
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // 处理图片粘贴
+            if (item.type.indexOf('image') !== -1) {
+                hasImage = true;
+                e.preventDefault();
+                
+                const blob = item.getAsFile();
+                if (blob) {
+                    handlePastedImage(blob);
+                }
+                break;
+            }
+        }
+    });
+    
+    // 处理粘贴的图片文件
+    function handlePastedImage(file) {
+        if (!currentFolder || isUploadingImage) return;
+        
+        isUploadingImage = true;
+        showPasteOverlay('正在上传图片...');
+        
+        const formData = new FormData();
+        formData.append('image', file, file.name || 'pasted_image.png');
+        
+        fetch(`/gallery/api/upload-pasted-image/${encodeURIComponent(currentFolder)}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 在光标位置插入Markdown图片语法
+                const textarea = folderDescriptionTextarea;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const imageMarkdown = data.markdown + '\n';
+                
+                textarea.value = text.substring(0, start) + imageMarkdown + text.substring(end);
+                
+                // 更新光标位置
+                textarea.selectionStart = textarea.selectionEnd = start + imageMarkdown.length;
+                textarea.focus();
+                
+                // 触发保存
+                updateSaveStatus('未保存');
+                autoSaveFolderDescription();
+                
+                showUploadSuccess(`图片已保存: ${data.filename}`);
+            } else {
+                showUploadError(data.message || '上传失败');
+            }
+        })
+        .catch(error => {
+            console.error('上传图片失败:', error);
+            showUploadError('网络错误，请重试');
+        })
+        .finally(() => {
+            isUploadingImage = false;
+            hidePasteOverlay();
+        });
+    }
+    
+    // 处理拖放图片
+    const editorWrapper = document.querySelector('.editor-wrapper');
+    
+    editorWrapper.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.types.includes('Files')) {
+            showPasteOverlay('释放以上传图片...');
+        }
+    });
+    
+    editorWrapper.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        hidePasteOverlay();
+    });
+    
+    editorWrapper.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            // 只处理第一个图片文件
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].type.indexOf('image') !== -1) {
+                    handlePastedImage(files[i]);
+                    break;
+                }
+            }
+        }
+    });
+    
+    // 显示粘贴遮罩层
+    function showPasteOverlay(message) {
+        if (pasteOverlay) {
+            const messageEl = pasteOverlay.querySelector('span');
+            if (messageEl) messageEl.textContent = message;
+            pasteOverlay.style.display = 'flex';
+        }
+    }
+    
+    // 隐藏粘贴遮罩层
+    function hidePasteOverlay() {
+        if (pasteOverlay) {
+            pasteOverlay.style.display = 'none';
+        }
+    }
+    
+    // 显示上传成功提示
+    function showUploadSuccess(message) {
+        const statusEl = document.getElementById('saveStatus');
+        if (statusEl) {
+            const originalText = statusEl.textContent;
+            statusEl.textContent = message;
+            statusEl.className = 'save-status saved';
+            setTimeout(() => {
+                statusEl.textContent = originalText;
+                updateSaveStatus('未保存');
+            }, 3000);
+        }
+    }
+    
+    // 显示上传失败提示
+    function showUploadError(message) {
+        const statusEl = document.getElementById('saveStatus');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'save-status error';
+            setTimeout(() => {
+                statusEl.textContent = '保存失败';
+                updateSaveStatus('保存失败');
+            }, 3000);
+        }
+    }
     
     // 排序和过滤功能
     const galleryGrid = document.querySelector('.gallery-grid');

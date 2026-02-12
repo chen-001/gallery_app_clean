@@ -7,6 +7,7 @@ from backend.services.auth_service import AuthService
 from backend.utils.decorators import login_required
 import os
 import json
+from datetime import datetime
 
 gallery_bp = Blueprint('gallery', __name__)
 gallery_service = GalleryService()
@@ -503,6 +504,92 @@ def api_search_in_selected_subfolders(parent_folder):
             'parent_folder': parent_folder,
             'selected_subfolders': selected_subfolders
         })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@gallery_bp.route('/api/upload-pasted-image/<path:folder_name>', methods=['POST'])
+@login_required
+def api_upload_pasted_image(folder_name):
+    """API: 上传粘贴的图片"""
+    try:
+        folder_path = gallery_service.images_root / folder_name
+        if not folder_path.exists() or not folder_path.is_dir():
+            return jsonify({
+                'success': False,
+                'message': '文件夹不存在'
+            }), 404
+        
+        # 检查是否有文件数据
+        if 'image' not in request.files:
+            # 检查base64数据
+            data = request.get_json()
+            if data and 'image_data' in data:
+                # 处理base64格式图片
+                import base64
+                import re
+                image_data = data['image_data']
+                
+                # 解析base64数据
+                match = re.match(r'^data:image/(\w+);base64,(.+)$', image_data)
+                if not match:
+                    return jsonify({
+                        'success': False,
+                        'message': '无效的图片格式'
+                    }), 400
+                
+                ext = match.group(1)
+                base64_content = match.group(2)
+                
+                # 确定文件名
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+                filename = f"pasted_image_{timestamp}.{ext}"
+                
+                # 保存图片
+                image_path = folder_path / filename
+                with open(image_path, 'wb') as f:
+                    f.write(base64.b64decode(base64_content))
+                
+                return jsonify({
+                    'success': True,
+                    'filename': filename,
+                    'url': f"/gallery/serve/{folder_name}/{filename}",
+                    'markdown': f"![{filename}]({filename})"
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': '没有收到图片数据'
+                }), 400
+        
+        # 处理文件上传
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'message': '文件名为空'
+            }), 400
+        
+        # 生成安全的文件名
+        from werkzeug.utils import secure_filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        original_filename = secure_filename(file.filename)
+        filename = f"pasted_{timestamp}_{original_filename}"
+        
+        # 保存图片
+        image_path = folder_path / filename
+        file.save(image_path)
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'url': f"/gallery/serve/{folder_name}/{filename}",
+            'markdown': f"![{filename}]({filename})"
+        })
+        
     except Exception as e:
         return jsonify({
             'success': False,

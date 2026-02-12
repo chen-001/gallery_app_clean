@@ -137,11 +137,160 @@
 }
 
 .folder-description img {
-    max-width: 100%;
+    max-width: min(600px, 100%);
     height: auto;
     border-radius: 4px;
     margin: 10px 0;
     box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+    cursor: zoom-in;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.folder-description img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.5);
+}
+
+/* Markdown 图片灯箱样式 */
+.markdown-lightbox {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.markdown-lightbox.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.markdown-lightbox-content {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 60px 20px 80px 20px;
+}
+
+.markdown-lightbox-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.markdown-lightbox-content img.zoomed {
+    cursor: grab;
+}
+
+.markdown-lightbox-content img.zoomed:active {
+    cursor: grabbing;
+}
+
+.markdown-lightbox-close {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    color: #fff;
+    font-size: 36px;
+    font-weight: 300;
+    cursor: pointer;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: color 0.2s ease, transform 0.2s ease;
+    z-index: 2001;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.markdown-lightbox-close:hover {
+    color: #ff69b4;
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.markdown-lightbox-caption {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 20px;
+    max-width: 80%;
+    word-break: break-word;
+}
+
+.markdown-lightbox-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 30px;
+    z-index: 2001;
+}
+
+.markdown-lightbox-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.markdown-lightbox-btn:hover {
+    background: rgba(255, 105, 180, 0.8);
+    transform: scale(1.1);
+}
+
+.markdown-lightbox-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.markdown-lightbox-zoom-level {
+    color: #fff;
+    font-size: 14px;
+    min-width: 60px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 /* 模态框样式 */
@@ -260,6 +409,44 @@
     background: #ffffff;
     border-color: #e91e63;
     box-shadow: 0 0 0 3px rgba(233,30,99,0.15);
+}
+
+/* 粘贴图片遮罩层样式 */
+.editor-wrapper {
+    position: relative;
+}
+
+.paste-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(233, 30, 99, 0.1);
+    border: 3px dashed #e91e63;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.paste-message {
+    background: #e91e63;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
+}
+
+.paste-message i {
+    font-size: 20px;
 }
 
 /* 键盘按键样式 */
@@ -1389,10 +1576,18 @@ kbd {
             <div class="form-group">
                 <label for="folderDescription">文件夹描述:</label>
                 <div style="margin-bottom: 8px; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;">
-                    <span>支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进</span>
+                    <span>支持Markdown语法 | <kbd>Ctrl+S</kbd> 保存 | <kbd>Tab</kbd> 缩进 | <strong>直接粘贴图片</strong></span>
                     <span id="saveStatus" class="save-status">已保存</span>
                 </div>
-                <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)"></textarea>
+                <div class="editor-wrapper" style="position: relative;">
+                    <textarea id="folderDescription" rows="30" placeholder="请输入文件夹描述（支持Markdown语法）...&#10;&#10;# 标题示例&#10;## 二级标题&#10;&#10;- 列表项目&#10;- 另一个项目&#10;&#10;```python&#10;# 代码块示例&#10;def hello():&#10;    print('Hello World!')&#10;```&#10;&#10;![图片描述](image.png)"></textarea>
+                    <div id="pasteOverlay" class="paste-overlay" style="display: none;">
+                        <div class="paste-message">
+                            <i class="fas fa-image"></i>
+                            <span>粘贴图片中...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>统计信息:</label>
@@ -1405,6 +1600,34 @@ kbd {
         <div class="modal-footer">
             <button class="btn btn-secondary" id="cancelFolder">取消</button>
             <button class="btn btn-primary" id="saveFolder">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 描述编辑模态框 -->
+<div class="modal" id="descriptionModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>编辑图片描述</h3>
+            <span class="modal-close" id="descModalClose">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="imageFilename">图片名称:</label>
+                <input type="text" id="imageFilename" readonly>
+            </div>
+            <div class="form-group">
+                <label for="imageDescription">描述内容:</label>
+                <div style="margin-bottom: 8px; font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center;">
+                    <span>自动保存已开启</span>
+                    <span id="imageSaveStatus" class="save-status">已保存</span>
+                </div>
+                <textarea id="imageDescription" rows="4" placeholder="请输入图片描述..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelDesc">取消</button>
+            <button class="btn btn-primary" id="saveDesc">保存</button>
         </div>
     </div>
 </div>
@@ -1540,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 
                                 const titleAttr = title ? ` title="${title}"` : '';
-                                return `<img src="${imageUrl}" alt="${text}"${titleAttr} style="max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
+                                return `<img src="${imageUrl}" alt="${text}"${titleAttr} style="max-width: min(600px, 100%); height: auto; border-radius: 4px; margin: 10px 0; box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);" onerror="console.error('Failed to load image:', this.src)">`;
                             };
                         } catch (e) {
                             console.warn('Failed to create custom renderer, using default:', e);
@@ -1758,8 +1981,275 @@ document.addEventListener('DOMContentLoaded', function() {
         autoSaveFolderDescription();
     });
     
+    // ========== 粘贴图片功能 ==========
+    const pasteOverlay = document.getElementById('pasteOverlay');
+    let isUploadingImage = false;
+    
+    // 处理粘贴事件
+    folderDescriptionTextarea.addEventListener('paste', function(e) {
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+        
+        // 检查是否有图片文件
+        const items = clipboardData.items;
+        let hasImage = false;
+        
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // 处理图片粘贴
+            if (item.type.indexOf('image') !== -1) {
+                hasImage = true;
+                e.preventDefault();
+                
+                const blob = item.getAsFile();
+                if (blob) {
+                    handlePastedImage(blob);
+                }
+                break;
+            }
+        }
+    });
+    
+    // 处理粘贴的图片文件
+    function handlePastedImage(file) {
+        if (!currentFolder || isUploadingImage) return;
+        
+        isUploadingImage = true;
+        showPasteOverlay('正在上传图片...');
+        
+        const formData = new FormData();
+        formData.append('image', file, file.name || 'pasted_image.png');
+        
+        fetch(`/gallery/api/upload-pasted-image/${encodeURIComponent(currentFolder)}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 在光标位置插入Markdown图片语法
+                const textarea = folderDescriptionTextarea;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const imageMarkdown = data.markdown + '\n';
+                
+                textarea.value = text.substring(0, start) + imageMarkdown + text.substring(end);
+                
+                // 更新光标位置
+                textarea.selectionStart = textarea.selectionEnd = start + imageMarkdown.length;
+                textarea.focus();
+                
+                // 触发保存
+                updateSaveStatus('未保存');
+                autoSaveFolderDescription();
+                
+                showUploadSuccess(`图片已保存: ${data.filename}`);
+            } else {
+                showUploadError(data.message || '上传失败');
+            }
+        })
+        .catch(error => {
+            console.error('上传图片失败:', error);
+            showUploadError('网络错误，请重试');
+        })
+        .finally(() => {
+            isUploadingImage = false;
+            hidePasteOverlay();
+        });
+    }
+    
+    // 处理拖放图片
+    const editorWrapper = document.querySelector('.editor-wrapper');
+    
+    editorWrapper.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.types.includes('Files')) {
+            showPasteOverlay('释放以上传图片...');
+        }
+    });
+    
+    editorWrapper.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        hidePasteOverlay();
+    });
+    
+    editorWrapper.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            // 只处理第一个图片文件
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].type.indexOf('image') !== -1) {
+                    handlePastedImage(files[i]);
+                    break;
+                }
+            }
+        }
+    });
+    
+    // 显示粘贴遮罩层
+    function showPasteOverlay(message) {
+        if (pasteOverlay) {
+            const messageEl = pasteOverlay.querySelector('span');
+            if (messageEl) messageEl.textContent = message;
+            pasteOverlay.style.display = 'flex';
+        }
+    }
+    
+    // 隐藏粘贴遮罩层
+    function hidePasteOverlay() {
+        if (pasteOverlay) {
+            pasteOverlay.style.display = 'none';
+        }
+    }
+    
+    // 显示上传成功提示
+    function showUploadSuccess(message) {
+        const statusEl = document.getElementById('saveStatus');
+        if (statusEl) {
+            const originalText = statusEl.textContent;
+            statusEl.textContent = message;
+            statusEl.className = 'save-status saved';
+            setTimeout(() => {
+                statusEl.textContent = originalText;
+                updateSaveStatus('未保存');
+            }, 3000);
+        }
+    }
+    
+    // 显示上传失败提示
+    function showUploadError(message) {
+        const statusEl = document.getElementById('saveStatus');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'save-status error';
+            setTimeout(() => {
+                statusEl.textContent = '保存失败';
+                updateSaveStatus('保存失败');
+            }, 3000);
+        }
+    }
+    
     // 页面加载完成后渲染 markdown
     renderMarkdown();
+
+    // ========== 图片描述编辑功能 ==========
+    const descriptionModal = document.getElementById('descriptionModal');
+    const imageFilenameInput = document.getElementById('imageFilename');
+    const imageDescriptionTextarea = document.getElementById('imageDescription');
+    const saveDescBtn = document.getElementById('saveDesc');
+    const cancelDescBtn = document.getElementById('cancelDesc');
+    const descModalCloseBtn = document.getElementById('descModalClose');
+    
+    let currentImageFolder = '';
+    let currentImageFilename = '';
+    
+    // 打开描述编辑模态框
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit-desc')) {
+            const btn = e.target.closest('.btn-edit-desc');
+            currentImageFolder = btn.dataset.folder;
+            currentImageFilename = btn.dataset.filename;
+            const currentDescription = btn.dataset.description || '';
+            
+            imageFilenameInput.value = currentImageFilename;
+            imageDescriptionTextarea.value = currentDescription;
+            descriptionModal.style.display = 'flex';
+        }
+    });
+    
+    // 关闭描述编辑模态框
+    function closeDescriptionModal() {
+        descriptionModal.style.display = 'none';
+        currentImageFolder = '';
+        currentImageFilename = '';
+    }
+    
+    descModalCloseBtn.addEventListener('click', closeDescriptionModal);
+    cancelDescBtn.addEventListener('click', closeDescriptionModal);
+    
+    // 点击模态框外部关闭
+    descriptionModal.addEventListener('click', function(e) {
+        if (e.target === descriptionModal) {
+            closeDescriptionModal();
+        }
+    });
+    
+    // 保存图片描述
+    function saveImageDescription(silent = false) {
+        if (!currentImageFolder || !currentImageFilename) {
+            if (!silent) alert('参数错误');
+            return;
+        }
+        
+        const description = imageDescriptionTextarea.value.trim();
+        
+        // 发送保存请求
+        fetch(`/gallery/api/description/${currentImageFolder}/${currentImageFilename}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (!silent) {
+                    closeDescriptionModal();
+                    // 刷新有描述的图片区域
+                    loadDescribedImages();
+                }
+                updateImageSaveStatus('已保存');
+            } else {
+                if (!silent) alert('保存失败: ' + data.message);
+                updateImageSaveStatus('保存失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (!silent) alert('保存时发生错误');
+            updateImageSaveStatus('保存失败');
+        });
+    }
+    
+    saveDescBtn.addEventListener('click', saveImageDescription);
+    
+    // 自动保存图片描述（防抖）
+    const autoSaveImageDescription = debounce(function() {
+        updateImageSaveStatus('保存中...');
+        saveImageDescription(true);
+    }, 2000);
+    
+    // 更新图片保存状态
+    function updateImageSaveStatus(status) {
+        const saveStatus = document.getElementById('imageSaveStatus');
+        if (saveStatus) {
+            saveStatus.textContent = status;
+            saveStatus.className = 'save-status';
+            if (status === '已保存') {
+                saveStatus.classList.add('saved');
+            } else if (status === '保存中...') {
+                saveStatus.classList.add('saving');
+            } else if (status === '保存失败') {
+                saveStatus.classList.add('error');
+            }
+        }
+    }
+    
+    // 图片描述编辑框的输入事件
+    imageDescriptionTextarea.addEventListener('input', function() {
+        updateImageSaveStatus('未保存');
+        autoSaveImageDescription();
+    });
     
     // 图片搜索功能
     const imageSearchInput = document.getElementById('imageSearchInput');
@@ -2522,7 +3012,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.folder || ''}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
@@ -2653,7 +3143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>` : ''}
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.subfolder}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
@@ -2871,7 +3361,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>` : ''}
                     <div class="image-actions" style="margin-top: 10px;">
                         <button class="btn btn-sm btn-edit-desc" 
-                                data-folder="${image.subfolder}" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
                                 data-filename="${image.name}" 
                                 data-description="${(image.description || '').replace(/"/g, '&quot;')}"
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
@@ -3189,6 +3679,211 @@ document.addEventListener('DOMContentLoaded', function() {
             floatingSearchWindow.classList.remove('show');
         }
     });
+
+    // ========== Markdown 图片灯箱功能 ==========
+    function initMarkdownLightbox() {
+        const lightbox = document.getElementById('markdownLightbox');
+        const lightboxImg = document.getElementById('markdownLightboxImg');
+        const lightboxClose = document.getElementById('markdownLightboxClose');
+        const lightboxCaption = document.getElementById('markdownLightboxCaption');
+        const lightboxContent = document.getElementById('markdownLightboxContent');
+        const zoomInBtn = document.getElementById('lightboxZoomIn');
+        const zoomOutBtn = document.getElementById('lightboxZoomOut');
+        const zoomLevel = document.getElementById('lightboxZoomLevel');
+        const resetBtn = document.getElementById('lightboxReset');
+        const folderDescription = document.getElementById('folderDescriptionDisplay');
+        
+        if (!lightbox || !lightboxImg || !folderDescription) return;
+        
+        // 缩放状态
+        let currentZoom = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        const MIN_ZOOM = 0.5;
+        const MAX_ZOOM = 5;
+        const ZOOM_STEP = 0.25;
+        
+        // 更新缩放显示
+        function updateZoom() {
+            lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+            zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+            
+            // 根据缩放级别启用/禁用按钮
+            zoomOutBtn.disabled = currentZoom <= MIN_ZOOM;
+            zoomInBtn.disabled = currentZoom >= MAX_ZOOM;
+            
+            // 添加/移除 zoomed 类用于光标样式
+            if (currentZoom > 1) {
+                lightboxImg.classList.add('zoomed');
+            } else {
+                lightboxImg.classList.remove('zoomed');
+                // 重置位置当缩放回1时
+                if (currentZoom === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                    lightboxImg.style.transform = `scale(1)`;
+                }
+            }
+        }
+        
+        // 放大
+        zoomInBtn.addEventListener('click', function() {
+            if (currentZoom < MAX_ZOOM) {
+                currentZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+                updateZoom();
+            }
+        });
+        
+        // 缩小
+        zoomOutBtn.addEventListener('click', function() {
+            if (currentZoom > MIN_ZOOM) {
+                currentZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+                if (currentZoom === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateZoom();
+            }
+        });
+        
+        // 重置
+        resetBtn.addEventListener('click', function() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateZoom();
+        });
+        
+        // 鼠标滚轮缩放
+        lightboxContent.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom + delta));
+            if (newZoom !== currentZoom) {
+                currentZoom = newZoom;
+                if (currentZoom === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateZoom();
+            }
+        });
+        
+        // 拖拽功能
+        lightboxImg.addEventListener('mousedown', function(e) {
+            if (currentZoom > 1) {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                lightboxImg.style.cursor = 'grabbing';
+            }
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                e.preventDefault();
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateZoom();
+            }
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                lightboxImg.style.cursor = currentZoom > 1 ? 'grab' : 'zoom-out';
+            }
+        });
+        
+        // 为 markdown 区域的图片添加点击事件
+        folderDescription.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const img = e.target;
+                lightboxImg.src = img.src;
+                
+                // 修复：获取 alt 文本，如果没有则使用空字符串
+                const altText = img.getAttribute('alt');
+                lightboxCaption.textContent = (altText && altText !== 'undefined') ? altText : '';
+                lightboxCaption.style.display = (altText && altText !== 'undefined') ? 'block' : 'none';
+                
+                // 重置缩放状态
+                currentZoom = 1;
+                translateX = 0;
+                translateY = 0;
+                updateZoom();
+                
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        
+        // 关闭灯箱
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                lightboxImg.src = '';
+                lightboxCaption.textContent = '';
+                // 重置缩放
+                currentZoom = 1;
+                translateX = 0;
+                translateY = 0;
+                updateZoom();
+            }, 300);
+        }
+        
+        // 点击关闭按钮
+        lightboxClose.addEventListener('click', closeLightbox);
+        
+        // 点击图片不关闭，让使用者可以点击拖拽
+        lightboxImg.addEventListener('click', function(e) {
+            if (!isDragging && currentZoom === 1) {
+                // 只有在未拖拽且未缩放时才关闭
+                closeLightbox();
+            }
+        });
+        
+        // 点击背景关闭
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox || e.target === lightboxContent) {
+                closeLightbox();
+            }
+        });
+        
+        // ESC 键关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+    }
+    
+    // 初始化灯箱
+    initMarkdownLightbox();
 });
 </script>
+
+<!-- Markdown 图片灯箱 -->
+<div class="markdown-lightbox" id="markdownLightbox">
+    <span class="markdown-lightbox-close" id="markdownLightboxClose">×</span>
+    <div class="markdown-lightbox-content" id="markdownLightboxContent">
+        <img src="" alt="" id="markdownLightboxImg">
+    </div>
+    <div class="markdown-lightbox-caption" id="markdownLightboxCaption"></div>
+    <div class="markdown-lightbox-controls">
+        <button class="markdown-lightbox-btn" id="lightboxZoomOut" title="缩小">
+            <i class="fas fa-minus"></i>
+        </button>
+        <span class="markdown-lightbox-zoom-level" id="lightboxZoomLevel">100%</span>
+        <button class="markdown-lightbox-btn" id="lightboxZoomIn" title="放大">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="markdown-lightbox-btn" id="lightboxReset" title="重置">
+            <i class="fas fa-compress"></i>
+        </button>
+    </div>
+</div>
 {% endblock %}
