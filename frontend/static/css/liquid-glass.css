@@ -1,0 +1,249 @@
+/* Liquid Glass Design System - 玫瑰色调适配版 */
+
+:root {
+  color-scheme: light dark;
+
+  /* Blur */
+  --lg-blur-sm: 8px;
+  --lg-blur-md: 16px;
+  --lg-blur-lg: 32px;
+  --lg-blur-xl: 48px;
+
+  /* Saturation */
+  --lg-saturate: 1.8;
+
+  /* Radius */
+  --lg-radius-sm: 8px;
+  --lg-radius-md: 12px;
+  --lg-radius-lg: 16px;
+  --lg-radius-xl: 24px;
+
+  /* Shadows - 玫瑰色调 */
+  --lg-shadow-subtle: 0 1px 3px rgba(233, 30, 99, 0.08);
+  --lg-shadow-elevated: 0 4px 16px rgba(233, 30, 99, 0.12);
+  --lg-shadow-high: 0 8px 32px rgba(233, 30, 99, 0.18);
+
+  /* Animation */
+  --lg-duration-fast: 150ms;
+  --lg-duration-normal: 300ms;
+  --lg-duration-slow: 500ms;
+  --lg-easing-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Light mode (default) - 玫瑰色调 */
+  --lg-bg-primary: rgba(255, 245, 248, 0.72);
+  --lg-bg-elevated: rgba(255, 250, 252, 0.82);
+  --lg-bg-toolbar: rgba(255, 240, 245, 0.65);
+  --lg-bg-interactive: rgba(255, 228, 233, 0.5);
+  --lg-bg-pressed: rgba(255, 210, 220, 0.35);
+  --lg-bg-scrim: rgba(233, 30, 99, 0.15);
+  --lg-border-color: rgba(233, 30, 99, 0.18);
+  --lg-border-subtle: rgba(233, 30, 99, 0.06);
+
+  /* 玫瑰色调强调色 */
+  --lg-accent-light: rgba(255, 182, 193, 0.3);
+  --lg-accent-medium: rgba(255, 105, 180, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lg-bg-primary: rgba(35, 25, 30, 0.75);
+    --lg-bg-elevated: rgba(45, 32, 38, 0.85);
+    --lg-bg-toolbar: rgba(30, 22, 26, 0.7);
+    --lg-bg-interactive: rgba(255, 105, 180, 0.15);
+    --lg-bg-pressed: rgba(255, 105, 180, 0.08);
+    --lg-bg-scrim: rgba(0, 0, 0, 0.5);
+    --lg-border-color: rgba(255, 105, 180, 0.2);
+    --lg-border-subtle: rgba(255, 182, 193, 0.08);
+    --lg-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --lg-shadow-elevated: 0 4px 16px rgba(233, 30, 99, 0.25);
+    --lg-shadow-high: 0 8px 32px rgba(233, 30, 99, 0.35);
+    --lg-accent-light: rgba(255, 182, 193, 0.2);
+    --lg-accent-medium: rgba(255, 105, 180, 0.3);
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --lg-bg-primary: rgba(255, 245, 248, 0.95);
+    --lg-bg-elevated: rgba(255, 250, 252, 0.98);
+    --lg-border-color: rgba(233, 30, 99, 0.4);
+  }
+}
+
+@media (prefers-contrast: high) and (prefers-color-scheme: dark) {
+  :root {
+    --lg-bg-primary: rgba(25, 18, 22, 0.95);
+    --lg-bg-elevated: rgba(30, 22, 26, 0.98);
+    --lg-border-color: rgba(255, 105, 180, 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lg-duration-fast: 0ms;
+    --lg-duration-normal: 0ms;
+    --lg-duration-slow: 0ms;
+  }
+}
+
+/* ========================================
+   液态玻璃组件样式
+   ======================================== */
+
+/* 液态玻璃卡片 */
+.lg-card {
+  background: var(--lg-bg-primary);
+  backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+  border: 1px solid var(--lg-border-color);
+  border-radius: var(--lg-radius-lg);
+  box-shadow: var(--lg-shadow-elevated);
+  transition: transform var(--lg-duration-normal) var(--lg-easing-spring),
+              box-shadow var(--lg-duration-normal) var(--lg-easing-spring);
+}
+
+.lg-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lg-shadow-high);
+}
+
+/* 液态玻璃工具栏 */
+.lg-toolbar {
+  background: var(--lg-bg-toolbar);
+  backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  border-bottom: 1px solid var(--lg-border-subtle);
+}
+
+/* 液态玻璃按钮 */
+.lg-btn {
+  background: var(--lg-bg-interactive);
+  backdrop-filter: blur(var(--lg-blur-sm));
+  -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+  border: 1px solid var(--lg-border-color);
+  border-radius: var(--lg-radius-md);
+  transition: all var(--lg-duration-fast) var(--lg-easing-spring);
+  cursor: pointer;
+}
+
+.lg-btn:active {
+  transform: scale(0.97);
+  background: var(--lg-bg-pressed);
+}
+
+.lg-btn:hover {
+  background: var(--lg-bg-pressed);
+  box-shadow: var(--lg-shadow-subtle);
+}
+
+/* 液态玻璃模态框遮罩 */
+.lg-overlay {
+  background: var(--lg-bg-scrim);
+  backdrop-filter: blur(var(--lg-blur-xl));
+  -webkit-backdrop-filter: blur(var(--lg-blur-xl));
+}
+
+/* 液态玻璃模态框 */
+.lg-modal {
+  background: var(--lg-bg-elevated);
+  backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  border: 1px solid var(--lg-border-color);
+  border-radius: var(--lg-radius-xl);
+  box-shadow: var(--lg-shadow-high);
+}
+
+/* 液态玻璃输入框 */
+.lg-input {
+  background: var(--lg-bg-interactive);
+  backdrop-filter: blur(var(--lg-blur-sm));
+  -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+  border: 1px solid var(--lg-border-color);
+  border-radius: var(--lg-radius-md);
+  transition: all var(--lg-duration-fast) var(--lg-easing-spring);
+}
+
+.lg-input:focus {
+  outline: none;
+  border-color: rgba(233, 30, 99, 0.5);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+}
+
+/* 液态玻璃容器 */
+.lg-container {
+  background: var(--lg-bg-primary);
+  backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  border: 1px solid var(--lg-border-color);
+  border-radius: var(--lg-radius-xl);
+  box-shadow: var(--lg-shadow-elevated);
+}
+
+/* 液态玻璃头部 */
+.lg-header {
+  background: var(--lg-bg-toolbar);
+  backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+  border-bottom: 1px solid var(--lg-border-subtle);
+  box-shadow: var(--lg-shadow-subtle);
+}
+
+/* 液态玻璃悬浮窗 */
+.lg-floating {
+  background: var(--lg-bg-elevated);
+  backdrop-filter: blur(var(--lg-blur-xl)) saturate(var(--lg-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-blur-xl)) saturate(var(--lg-saturate));
+  border: 1px solid var(--lg-border-color);
+  box-shadow: var(--lg-shadow-high);
+}
+
+/* 动画关键帧 */
+@keyframes lg-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes lg-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lg-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.lg-animate-in {
+  animation: lg-enter var(--lg-duration-normal) var(--lg-easing-spring) both;
+}
+
+.lg-fade-in {
+  animation: lg-fade-in var(--lg-duration-normal) var(--lg-easing-spring) both;
+}
+
+.lg-slide-in-right {
+  animation: lg-slide-in-right var(--lg-duration-normal) var(--lg-easing-spring) both;
+}
+
+/* 强制浅色/深色模式 */
+.light-glass {
+  color-scheme: light;
+}
+
+.dark-glass {
+  color-scheme: dark;
+}

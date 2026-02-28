@@ -4,20 +4,23 @@
 
 {% block extra_css %}
 <style>
+/* 错误页面样式 - 液态玻璃版本 */
 .error-container {
     text-align: center;
     padding: 60px 20px;
     max-width: 600px;
     margin: 0 auto;
-    background: var(--card-gradient);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(255, 182, 193, 0.2);
-    box-shadow: var(--box-shadow);
+    background: var(--lg-bg-primary);
+    backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+    border-radius: var(--lg-radius-xl);
+    border: 1px solid var(--lg-border-color);
+    box-shadow: var(--lg-shadow-elevated);
 }
 
 .error-icon {
     font-size: 4rem;
-    color: var(--accent-color);
+    color: var(--primary-color);
     margin-bottom: 20px;
 }
 

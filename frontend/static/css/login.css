@@ -1,4 +1,4 @@
-/* 登录页面专用样式 */
+/* 登录页面专用样式 - 液态玻璃版本 */
 
 body {
     min-height: 100vh;
@@ -17,16 +17,19 @@ body {
     width: 100%;
 }
 
+/* 登录容器 - 液态玻璃效果 */
 .login-container {
-    background: linear-gradient(135deg, rgba(255, 245, 248, 0.95) 0%, rgba(255, 228, 233, 0.95) 100%);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(255, 182, 193, 0.3);
+    background: var(--lg-bg-elevated);
+    backdrop-filter: blur(var(--lg-blur-xl)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-xl)) saturate(var(--lg-saturate));
+    border-radius: var(--lg-radius-xl);
+    box-shadow: var(--lg-shadow-high);
     padding: 40px;
     min-width: 400px;
     max-width: 500px;
     width: 100%;
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    border: 1px solid var(--lg-border-color);
+    animation: lg-enter var(--lg-duration-normal) var(--lg-easing-spring) both;
 }
 
 .login-header {
@@ -56,20 +59,29 @@ body {
     margin-bottom: 20px;
 }
 
+/* 登录按钮 - 液态玻璃效果 */
 .login-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.85) 0%, 
+        rgba(255, 105, 180, 0.85) 100%);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
     border: none;
     padding: 14px;
     font-size: 1rem;
     font-weight: 600;
     margin-top: 10px;
     transition: var(--transition);
-    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    box-shadow: var(--lg-shadow-elevated);
+    color: white;
 }
 
 .login-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+    box-shadow: var(--lg-shadow-high);
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.95) 0%, 
+        rgba(255, 105, 180, 0.95) 100%);
 }
 
 .login-btn:disabled {
@@ -79,10 +91,17 @@ body {
     box-shadow: none;
 }
 
+.login-btn:active {
+    transform: scale(0.97);
+}
+
+/* 手动登出信息 - 液态玻璃效果 */
 .manual-logout-info {
-    background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%);
-    border: 1px solid rgba(255, 182, 193, 0.3);
-    border-radius: var(--border-radius);
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    border: 1px solid var(--lg-border-color);
+    border-radius: var(--lg-radius-lg);
     padding: 15px;
     margin-bottom: 25px;
 }
@@ -103,10 +122,12 @@ body {
 }
 
 .enable-auto-login-btn {
-    background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+    background: linear-gradient(135deg, 
+        rgba(76, 175, 80, 0.85) 0%, 
+        rgba(102, 187, 106, 0.85) 100%);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--lg-radius-md);
     padding: 8px 16px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -119,7 +140,7 @@ body {
 
 .enable-auto-login-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    box-shadow: var(--lg-shadow-elevated);
 }
 
 .back-link {
@@ -135,17 +156,22 @@ body {
     align-items: center;
     gap: 6px;
     transition: var(--transition);
+    padding: 8px 16px;
+    border-radius: var(--lg-radius-md);
 }
 
 .back-link a:hover {
     color: #5a6fd8;
-    transform: translateY(-1px);
+    background: var(--lg-bg-interactive);
 }
 
+/* 允许用户列表 - 液态玻璃效果 */
 .allowed-users {
-    background: var(--light-pink);
-    border: 1px solid rgba(255, 182, 193, 0.3);
-    border-radius: var(--border-radius);
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    border: 1px solid var(--lg-border-color);
+    border-radius: var(--lg-radius-lg);
     padding: 15px;
     margin-top: 20px;
 }
@@ -163,13 +189,15 @@ body {
 }
 
 .user-tag {
-    background: var(--medium-pink);
+    background: var(--lg-bg-pressed);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
     color: var(--secondary-color);
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: var(--lg-radius-sm);
     font-size: 0.8rem;
     font-family: 'Courier New', monospace;
-    border: 1px solid rgba(255, 182, 193, 0.3);
+    border: 1px solid var(--lg-border-color);
 }
 
 /* 响应式设计 */
@@ -178,6 +206,7 @@ body {
         min-width: auto;
         padding: 30px 20px;
         margin: 10px;
+        border-radius: var(--lg-radius-lg);
     }
     
     .login-header h1 {

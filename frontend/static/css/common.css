@@ -1,4 +1,6 @@
-/* 全局样式 */
+/* 全局样式 - 液态玻璃版本 */
+@import 'liquid-glass.css';
+
 * {
     margin: 0;
     padding: 0;
@@ -6,21 +8,31 @@
 }
 
 :root {
+    /* 品牌色 */
     --primary-color: #e91e63;
     --secondary-color: #2d3748;
     --accent-color: #ff69b4;
     --success-color: #4caf50;
     --warning-color: #ff9800;
-    --light-pink: #fff0f5;
-    --medium-pink: #ffe4e9;
-    --dark-pink: #ffb6c1;
+    
+    /* 玫瑰色调 */
+    --light-pink: rgba(255, 240, 245, 0.8);
+    --medium-pink: rgba(255, 228, 233, 0.7);
+    --dark-pink: rgba(255, 182, 193, 0.5);
     --light-gray: #ecf0f1;
     --dark-gray: #7f8c8d;
-    --border-radius: 8px;
-    --box-shadow: 0 2px 10px rgba(255, 182, 193, 0.3);
-    --transition: all 0.3s ease;
-    --pink-gradient: linear-gradient(135deg, #ffeef5 0%, #ffe0ec 50%, #ffcfe0 100%);
-    --card-gradient: linear-gradient(135deg, #fff5f8 0%, #ffe8f0 100%);
+    
+    /* 继承液态玻璃变量 */
+    --border-radius: var(--lg-radius-md);
+    --box-shadow: var(--lg-shadow-elevated);
+    --transition: all var(--lg-duration-normal) var(--lg-easing-spring);
+    
+    /* 渐变背景 - 液态玻璃风格 */
+    --pink-gradient: linear-gradient(135deg, 
+        rgba(255, 240, 245, 0.9) 0%, 
+        rgba(255, 228, 233, 0.85) 50%, 
+        rgba(255, 215, 225, 0.9) 100%);
+    --card-gradient: var(--lg-bg-primary);
 }
 
 body {
@@ -29,6 +41,12 @@ body {
     color: var(--secondary-color);
     background: var(--pink-gradient);
     min-height: 100vh;
+    /* 添加微妙的图案背景 */
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(233, 30, 99, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 105, 180, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(255, 182, 193, 0.05) 0%, transparent 50%),
+        var(--pink-gradient);
 }
 
 .container {
@@ -37,16 +55,17 @@ body {
     padding: 0 20px;
 }
 
-/* 头部样式 */
+/* 头部样式 - 液态玻璃效果 */
 .header {
-    background: linear-gradient(135deg, rgba(255, 240, 245, 0.95) 0%, rgba(255, 228, 233, 0.95) 100%);
-    backdrop-filter: blur(10px);
+    background: var(--lg-bg-toolbar);
+    backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-lg)) saturate(var(--lg-saturate));
     padding: 1rem 0;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--lg-shadow-subtle);
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+    border-bottom: 1px solid var(--lg-border-subtle);
 }
 
 .header .container {
@@ -59,7 +78,7 @@ body {
     color: var(--primary-color);
     font-size: 1.8rem;
     font-weight: 700;
-    text-shadow: 1px 1px 2px rgba(255, 182, 193, 0.3);
+    text-shadow: 0 1px 2px rgba(233, 30, 99, 0.15);
 }
 
 .header h1 i {
@@ -73,19 +92,22 @@ body {
 }
 
 .logout-btn {
-    background: var(--accent-color);
-    color: white;
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    color: var(--primary-color);
     padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
+    border-radius: var(--lg-radius-md);
     text-decoration: none;
+    border: 1px solid var(--lg-border-color);
     transition: var(--transition);
-    box-shadow: 0 2px 6px rgba(255, 105, 180, 0.3);
+    box-shadow: var(--lg-shadow-subtle);
 }
 
 .logout-btn:hover {
-    background: #ff1493;
+    background: var(--lg-bg-pressed);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
+    box-shadow: var(--lg-shadow-elevated);
 }
 
 /* 主内容区域 */
@@ -94,86 +116,148 @@ body {
     padding: 2rem 0;
 }
 
-/* 页脚样式 */
+/* 页脚样式 - 液态玻璃效果 */
 .footer {
-    background: linear-gradient(135deg, rgba(233, 30, 99, 0.8) 0%, rgba(255, 105, 180, 0.8) 100%);
-    color: white;
+    background: var(--lg-bg-toolbar);
+    backdrop-filter: blur(var(--lg-blur-md));
+    -webkit-backdrop-filter: blur(var(--lg-blur-md));
+    color: var(--secondary-color);
     text-align: center;
     padding: 1rem 0;
     margin-top: auto;
-    border-top: 1px solid rgba(255, 182, 193, 0.3);
+    border-top: 1px solid var(--lg-border-subtle);
 }
 
-/* 通用按钮样式 */
+/* 通用按钮样式 - 液态玻璃效果 */
 .btn {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background: var(--primary-color);
-    color: white;
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    color: var(--primary-color);
     text-decoration: none;
-    border-radius: var(--border-radius);
-    border: none;
+    border-radius: var(--lg-radius-md);
+    border: 1px solid var(--lg-border-color);
     cursor: pointer;
     transition: var(--transition);
     font-size: 1rem;
-    box-shadow: 0 2px 6px rgba(233, 30, 99, 0.3);
+    box-shadow: var(--lg-shadow-subtle);
 }
 
 .btn:hover {
-    background: #ad1457;
+    background: var(--lg-bg-pressed);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
+    box-shadow: var(--lg-shadow-elevated);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.85) 0%, 
+        rgba(255, 105, 180, 0.85) 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.95) 0%, 
+        rgba(255, 105, 180, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.35);
 }
 
 .btn-secondary {
-    background: var(--dark-gray);
+    background: var(--lg-bg-interactive);
+    color: var(--secondary-color);
 }
 
 .btn-secondary:hover {
-    background: #6c7b7d;
+    background: var(--lg-bg-pressed);
 }
 
 .btn-success {
-    background: var(--success-color);
+    background: linear-gradient(135deg, 
+        rgba(76, 175, 80, 0.85) 0%, 
+        rgba(102, 187, 106, 0.85) 100%);
+    color: white;
+    border-color: transparent;
 }
 
 .btn-success:hover {
-    background: #229954;
+    background: linear-gradient(135deg, 
+        rgba(76, 175, 80, 0.95) 0%, 
+        rgba(102, 187, 106, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.35);
 }
 
 .btn-warning {
-    background: var(--warning-color);
+    background: linear-gradient(135deg, 
+        rgba(255, 152, 0, 0.85) 0%, 
+        rgba(255, 183, 77, 0.85) 100%);
+    color: white;
+    border-color: transparent;
 }
 
 .btn-warning:hover {
-    background: #e67e22;
+    background: linear-gradient(135deg, 
+        rgba(255, 152, 0, 0.95) 0%, 
+        rgba(255, 183, 77, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(255, 152, 0, 0.35);
 }
 
 .btn-danger {
-    background: var(--accent-color);
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.85) 0%, 
+        rgba(244, 143, 177, 0.85) 100%);
+    color: white;
+    border-color: transparent;
 }
 
 .btn-danger:hover {
-    background: #ff1493;
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.95) 0%, 
+        rgba(244, 143, 177, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.35);
 }
 
-/* 卡片样式 */
+.btn-info {
+    background: linear-gradient(135deg, 
+        rgba(23, 162, 184, 0.85) 0%, 
+        rgba(77, 182, 199, 0.85) 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, 
+        rgba(23, 162, 184, 0.95) 0%, 
+        rgba(77, 182, 199, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(23, 162, 184, 0.35);
+}
+
+/* 卡片样式 - 液态玻璃效果 */
 .card {
-    background: var(--card-gradient);
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    background: var(--lg-bg-primary);
+    backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    border-radius: var(--lg-radius-lg);
+    box-shadow: var(--lg-shadow-elevated);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     transition: var(--transition);
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    border: 1px solid var(--lg-border-color);
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 20px rgba(255, 182, 193, 0.4);
+    box-shadow: var(--lg-shadow-high);
 }
 
-/* 表单样式 */
+/* 表单样式 - 液态玻璃效果 */
 .form-group {
     margin-bottom: 1rem;
 }
@@ -188,17 +272,25 @@ body {
 .form-control {
     width: 100%;
     padding: 0.75rem;
-    border: 2px solid var(--dark-pink);
-    border-radius: var(--border-radius);
+    border: 1px solid var(--lg-border-color);
+    border-radius: var(--lg-radius-md);
     font-size: 1rem;
     transition: var(--transition);
-    background: var(--light-pink);
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    color: var(--secondary-color);
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.2);
+    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+    background: var(--lg-bg-elevated);
+}
+
+.form-control::placeholder {
+    color: var(--dark-gray);
 }
 
 /* 响应式设计 */
@@ -226,7 +318,7 @@ body {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid var(--light-gray);
+    border: 3px solid var(--lg-bg-interactive);
     border-radius: 50%;
     border-top-color: var(--primary-color);
     animation: spin 1s ease-in-out infinite;
@@ -236,35 +328,35 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* 消息提示 */
+/* 消息提示 - 液态玻璃效果 */
 .alert {
     padding: 1rem;
     margin-bottom: 1rem;
-    border-radius: var(--border-radius);
+    border-radius: var(--lg-radius-md);
     border-left: 4px solid;
+    background: var(--lg-bg-primary);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
+    border: 1px solid var(--lg-border-color);
 }
 
 .alert-success {
-    background: #d4edda;
-    border-color: var(--success-color);
+    border-left-color: var(--success-color);
     color: #155724;
 }
 
 .alert-warning {
-    background: #fff3cd;
-    border-color: var(--warning-color);
+    border-left-color: var(--warning-color);
     color: #856404;
 }
 
 .alert-error {
-    background: #f8d7da;
-    border-color: var(--accent-color);
+    border-left-color: var(--accent-color);
     color: #721c24;
 }
 
 .alert-info {
-    background: #cce7ff;
-    border-color: var(--primary-color);
+    border-left-color: var(--primary-color);
     color: #004085;
 }
 
@@ -273,33 +365,35 @@ body {
     font-size: 12px;
     font-weight: 500;
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: var(--lg-radius-sm);
     transition: all 0.3s ease;
     display: inline-block;
     min-width: 60px;
     text-align: center;
+    background: var(--lg-bg-interactive);
+    border: 1px solid var(--lg-border-color);
 }
 
 .save-status.saved {
-    background: #d4edda;
+    background: rgba(212, 237, 218, 0.8);
     color: #155724;
-    border: 1px solid #4caf50;
+    border-color: rgba(76, 175, 80, 0.4);
 }
 
 .save-status.saving {
-    background: #fff3cd;
+    background: rgba(255, 243, 205, 0.8);
     color: #856404;
-    border: 1px solid #ff9800;
+    border-color: rgba(255, 152, 0, 0.4);
 }
 
 .save-status.error {
-    background: #f8d7da;
+    background: rgba(248, 215, 218, 0.8);
     color: #721c24;
-    border: 1px solid #dc3545;
+    border-color: rgba(220, 53, 69, 0.4);
 }
 
 .save-status:not(.saved):not(.saving):not(.error) {
-    background: #e9ecef;
+    background: var(--lg-bg-interactive);
     color: #6c757d;
-    border: 1px solid #ced4da;
+    border-color: var(--lg-border-color);
 }

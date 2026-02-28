@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-/* 文件查看器样式 */
+/* 文件查看器样式 - 液态玻璃版本 */
 .viewer-container {
     max-width: 100%;
     margin: 0 auto;
@@ -14,12 +14,14 @@
 }
 
 .viewer-header {
-    background: var(--card-gradient);
-    border-radius: 8px;
+    background: var(--lg-bg-primary);
+    backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    border-radius: var(--lg-radius-lg);
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: var(--box-shadow);
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    box-shadow: var(--lg-shadow-elevated);
+    border: 1px solid var(--lg-border-color);
 }
 
 .viewer-header h1 {
@@ -51,23 +53,25 @@
 }
 
 .viewer-content {
-    background: var(--card-gradient);
-    border-radius: 8px;
+    background: var(--lg-bg-primary);
+    backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur-md)) saturate(var(--lg-saturate));
+    border-radius: var(--lg-radius-lg);
     padding: 20px;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--lg-shadow-elevated);
     text-align: center;
     min-height: 400px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    border: 1px solid var(--lg-border-color);
 }
 
 .svg-viewer {
     width: 100%;
     max-width: 100%;
     height: auto;
-    border-radius: 4px;
+    border-radius: var(--lg-radius-md);
     background: #fff;
 }
 
@@ -75,8 +79,8 @@
     max-width: 100%;
     max-height: 80vh;
     height: auto;
-    border-radius: 4px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    border-radius: var(--lg-radius-md);
+    box-shadow: var(--lg-shadow-high);
 }
 
 .file-not-supported {
@@ -88,47 +92,64 @@
 .file-not-supported i {
     font-size: 3rem;
     margin-bottom: 20px;
-    color: #ddd;
+    color: var(--primary-color);
+    opacity: 0.5;
 }
 
-.btn {
+.viewer-container .btn {
     padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
+    border: 1px solid var(--lg-border-color);
+    border-radius: var(--lg-radius-md);
     text-decoration: none;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--transition);
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    background: var(--lg-bg-interactive);
+    backdrop-filter: blur(var(--lg-blur-sm));
+    -webkit-backdrop-filter: blur(var(--lg-blur-sm));
 }
 
-.btn-primary {
-    background: var(--primary-color);
+.viewer-container .btn:hover {
+    background: var(--lg-bg-pressed);
+    transform: translateY(-1px);
+}
+
+.viewer-container .btn-primary {
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.85) 0%, 
+        rgba(255, 105, 180, 0.85) 100%);
     color: white;
+    border-color: transparent;
 }
 
-.btn-primary:hover {
-    background: #ad1457;
+.viewer-container .btn-primary:hover {
+    background: linear-gradient(135deg, 
+        rgba(233, 30, 99, 0.95) 0%, 
+        rgba(255, 105, 180, 0.95) 100%);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35);
 }
 
-.btn-secondary {
-    background: var(--dark-gray);
+.viewer-container .btn-secondary {
+    background: var(--lg-bg-interactive);
+    color: var(--secondary-color);
+}
+
+.viewer-container .btn-success {
+    background: linear-gradient(135deg, 
+        rgba(76, 175, 80, 0.85) 0%, 
+        rgba(102, 187, 106, 0.85) 100%);
     color: white;
+    border-color: transparent;
 }
 
-.btn-secondary:hover {
-    background: #545b62;
-}
-
-.btn-success {
-    background: var(--success-color);
-    color: white;
-}
-
-.btn-success:hover {
-    background: #1e7e34;
+.viewer-container .btn-success:hover {
+    background: linear-gradient(135deg, 
+        rgba(76, 175, 80, 0.95) 0%, 
+        rgba(102, 187, 106, 0.95) 100%);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
 }
 
 @media (max-width: 768px) {
