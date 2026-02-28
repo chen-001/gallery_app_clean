@@ -623,3 +623,132 @@ def emit_folder_description_update(folder_name, description):
     except Exception as e:
         import logging
         logging.getLogger(__name__).error(f'发送文件夹描述更新通知失败: {e}')
+
+
+# ========== 因子相关性分析 API ==========
+
+@gallery_bp.route('/api/correlation/calculate', methods=['POST'])
+@login_required
+def api_calculate_correlation():
+    """API: 计算因子相关性矩阵"""
+    from backend.utils.correlation_utils import calculate_correlation_matrix
+    import uuid
+    
+    try:
+        data = request.get_json()
+        factor_names = data.get('factor_names', [])
+        factor_version = data.get('factor_version', '')
+        
+        if not factor_names or len(factor_names) < 2:
+            return jsonify({
+                'success': False,
+                'message': '至少需要选择2个因子'
+            }), 400
+        
+        if not factor_version:
+            return jsonify({
+                'success': False,
+                'message': '缺少因子版本参数'
+            }), 400
+        
+        result = calculate_correlation_matrix(factor_version, factor_names)
+        
+        if result['success']:
+            # 生成记录ID和时间戳
+            from datetime import datetime
+            result['id'] = str(uuid.uuid4())[:8]
+            result['timestamp'] = datetime.now().isoformat()
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@gallery_bp.route('/api/correlation/history', methods=['GET'])
+@login_required
+def api_get_correlation_history():
+    """API: 获取相关性分析历史记录"""
+    from backend.utils.correlation_utils import get_correlation_history
+    
+    try:
+        history = get_correlation_history()
+        return jsonify({
+            'success': True,
+            'data': history
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@gallery_bp.route('/api/correlation/history/save', methods=['POST'])
+@login_required
+def api_save_correlation_history():
+    """API: 保存相关性分析结果到历史"""
+    from backend.utils.correlation_utils import save_correlation_history
+    import uuid
+    from datetime import datetime
+    
+    try:
+        data = request.get_json()
+        
+        # 生成记录ID和时间戳
+        record = {
+            'id': data.get('id', str(uuid.uuid4())[:8]),
+            'timestamp': datetime.now().isoformat(),
+            'factor_version': data.get('factor_version'),
+            'factor_names': data.get('factor_names', []),
+            'correlation_matrix': data.get('correlation_matrix', [])
+        }
+        
+        success = save_correlation_history(record)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': '保存成功'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': '保存失败'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@gallery_bp.route('/api/correlation/history/<record_id>', methods=['DELETE'])
+@login_required
+def api_delete_correlation_history(record_id):
+    """API: 删除历史记录"""
+    from backend.utils.correlation_utils import delete_correlation_history
+    
+    try:
+        success = delete_correlation_history(record_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': '删除成功'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': '记录不存在'
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
