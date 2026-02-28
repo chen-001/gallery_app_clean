@@ -2403,25 +2403,12 @@ document.addEventListener('DOMContentLoaded', function() {
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
         
-        // 按version分组因子
-        const versionGroups = {};
-        selectedFactors.forEach(f => {
-            if (!versionGroups[f.version]) {
-                versionGroups[f.version] = [];
-            }
-            versionGroups[f.version].push(f.name);
-        });
-        
-        // 使用第一个version作为主version
-        const primaryVersion = Object.keys(versionGroups)[0];
-        const factorNames = versionGroups[primaryVersion];
-        
+        // 发送所有选中的因子（支持跨version）
         fetch('/gallery/api/correlation/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                factor_names: factorNames,
-                factor_version: primaryVersion
+                factor_list: selectedFactors
             })
         })
         .then(response => response.json())

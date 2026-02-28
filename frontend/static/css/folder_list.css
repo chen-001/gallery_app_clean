@@ -266,18 +266,6 @@
     margin-top: 10px;
 }
 
-.folder-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: auto;
-}
-
-.list-view .folder-actions {
-    margin-top: 0;
-    flex-direction: column;
-    min-width: 120px;
-}
-
 .btn-sm {
     padding: 8px 16px;
     font-size: 0.85rem;
@@ -355,6 +343,16 @@
     .list-view .folder-actions {
         flex-direction: row;
     }
+    
+    .folder-status-section {
+        min-width: 80px;
+    }
+    
+    .status-indicator {
+        font-size: 10px;
+        min-width: 60px;
+        padding: 3px 6px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -365,6 +363,23 @@
     
     .folder-actions {
         flex-direction: column;
+    }
+    
+    .folder-card {
+        flex-direction: column !important;
+    }
+    
+    .folder-status-section {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    .status-checkboxes {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
 
@@ -472,4 +487,171 @@
     display: inline-block;
     margin-bottom: 8px;
     font-size: 12px;
+}
+
+/* 文件夹状态选择框样式 */
+.folder-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch;
+    gap: 15px;
+}
+
+.folder-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    min-width: 0;
+}
+
+.folder-icon {
+    flex-shrink: 0;
+}
+
+.folder-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.folder-status-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 0 5px;
+    margin-left: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.status-label {
+    display: none; /* 隐藏标签，节省空间 */
+}
+
+.status-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.status-checkbox {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1.5px solid transparent;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.5);
+    color: #666;
+    white-space: nowrap;
+    min-width: 70px;
+}
+
+.status-indicator i {
+    font-size: 10px;
+}
+
+/* 研究中状态 */
+.status-indicator.researching:hover,
+.status-checkbox:hover .status-indicator.researching {
+    background: rgba(52, 152, 219, 0.15);
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.status-input:checked + .status-indicator.researching {
+    background: #3498db;
+    border-color: #3498db;
+    color: white;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+}
+
+/* 交流过状态 */
+.status-indicator.communicated:hover,
+.status-checkbox:hover .status-indicator.communicated {
+    background: rgba(243, 156, 18, 0.15);
+    border-color: #f39c12;
+    color: #f39c12;
+}
+
+.status-input:checked + .status-indicator.communicated {
+    background: #f39c12;
+    border-color: #f39c12;
+    color: white;
+    box-shadow: 0 2px 6px rgba(243, 156, 18, 0.3);
+}
+
+/* 已收尾状态 */
+.status-indicator.completed:hover,
+.status-checkbox:hover .status-indicator.completed {
+    background: rgba(39, 174, 96, 0.15);
+    border-color: #27ae60;
+    color: #27ae60;
+}
+
+.status-input:checked + .status-indicator.completed {
+    background: #27ae60;
+    border-color: #27ae60;
+    color: white;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+}
+
+/* 状态指示器激活效果 */
+.status-input:checked + .status-indicator {
+    transform: scale(1.05);
+    font-weight: 600;
+}
+
+/* 禁用状态 */
+.status-checkbox.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.status-checkbox.disabled .status-indicator {
+    pointer-events: none;
+}
+
+/* 调整 folder-actions 位置 */
+.folder-actions {
+    padding: 0;
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* 列表视图调整 */
+.list-view .folder-main-content {
+    flex-direction: row;
+    align-items: center;
+}
+
+.list-view .folder-status-section {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
 }

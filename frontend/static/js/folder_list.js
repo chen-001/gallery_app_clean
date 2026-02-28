@@ -14,6 +14,7 @@ function initFolderList() {
     initViewToggle();
     initSortFilters();
     initFolderCards();
+    initFolderStatus();
     
     // 恢复用户偏好设置
     loadUserPreferences();
@@ -289,3 +290,97 @@ window.folderList = {
     switchView,
     sortFolders
 };
+
+// ========== 文件夹状态管理 ==========
+
+// 初始化文件夹状态
+async function initFolderStatus() {
+    try {
+        // 加载所有文件夹状态
+        const response = await fetch('/gallery/api/folder-status/all');
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            applyFolderStatus(data.data);
+        }
+        
+        // 绑定状态选择事件
+        bindStatusCheckboxEvents();
+    } catch (error) {
+        console.error('加载文件夹状态失败:', error);
+    }
+}
+
+// 应用文件夹状态到UI
+function applyFolderStatus(statusData) {
+    const folderCards = document.querySelectorAll('.folder-card');
+    
+    folderCards.forEach(card => {
+        const folderName = card.dataset.folderName;
+        if (folderName && statusData[folderName]) {
+            const statusInfo = statusData[folderName];
+            const statusCheckboxes = card.querySelectorAll('.status-input');
+            
+            statusCheckboxes.forEach(checkbox => {
+                if (checkbox.value === statusInfo.status) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+    });
+}
+
+// 绑定状态选择框事件
+function bindStatusCheckboxEvents() {
+    const statusInputs = document.querySelectorAll('.status-input');
+    
+    statusInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            e.preventDefault();
+            
+            const folderName = this.dataset.folder;
+            const status = this.value;
+            const container = this.closest('.status-checkboxes');
+            
+            if (this.checked) {
+                // 取消同组其他复选框的选中状态（单选行为）
+                const siblings = container.querySelectorAll('.status-input');
+                siblings.forEach(sibling => {
+                    if (sibling !== this) {
+                        sibling.checked = false;
+                    }
+                });
+                
+                // 保存状态
+                saveFolderStatus(folderName, status);
+            } else {
+                // 如果取消选中，则清除状态
+                saveFolderStatus(folderName, '');
+            }
+        });
+    });
+}
+
+// 保存文件夹状态
+async function saveFolderStatus(folderName, status) {
+    try {
+        const url = `/gallery/api/folder-status/${encodeURIComponent(folderName)}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            console.error('保存状态失败:', data.message);
+            // 恢复原状态
+            location.reload();
+        }
+    } catch (error) {
+        console.error('保存状态时发生错误:', error);
+    }
+}

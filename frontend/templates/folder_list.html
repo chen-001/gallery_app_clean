@@ -51,39 +51,63 @@
     
     <div class="folder-grid" id="folderGrid">
         {% for folder in folders %}
-        <div class="folder-card" data-name="{{ folder.name|lower }}" data-date="{{ folder.date }}" data-size="{{ folder.size }}">
-            <div class="folder-icon">
-                <i class="fas fa-folder"></i>
-                {% if folder.image_count %}
-                <span class="image-count">{{ folder.image_count }}</span>
-                {% endif %}
-            </div>
-            <div class="folder-info">
-                <h3 class="folder-name">{{ folder.name }}</h3>
-                <p class="folder-meta">
+        <div class="folder-card" data-name="{{ folder.name|lower }}" data-date="{{ folder.date }}" data-size="{{ folder.size }}" data-folder-name="{{ folder.name }}">
+            <div class="folder-main-content">
+                <div class="folder-icon">
+                    <i class="fas fa-folder"></i>
                     {% if folder.image_count %}
-                    <span><i class="fas fa-images"></i> {{ folder.image_count }} 张</span>
+                    <span class="image-count">{{ folder.image_count }}</span>
                     {% endif %}
-                    {% if folder.size %}
-                    <span><i class="fas fa-hdd"></i> {{ folder.size | filesizeformat }}</span>
+                </div>
+                <div class="folder-info">
+                    <h3 class="folder-name">{{ folder.name }}</h3>
+                    <p class="folder-meta">
+                        {% if folder.image_count %}
+                        <span><i class="fas fa-images"></i> {{ folder.image_count }} 张</span>
+                        {% endif %}
+                        {% if folder.size %}
+                        <span><i class="fas fa-hdd"></i> {{ folder.size | filesizeformat }}</span>
+                        {% endif %}
+                        {% if folder.date %}
+                        <span><i class="fas fa-calendar"></i> {{ folder.date | date }}</span>
+                        {% endif %}
+                    </p>
+                    {% if folder.description %}
+                    <p class="folder-description" style="display: none;">{{ folder.description }}</p>
                     {% endif %}
-                    {% if folder.date %}
-                    <span><i class="fas fa-calendar"></i> {{ folder.date | date }}</span>
-                    {% endif %}
-                </p>
-                {% if folder.description %}
-                <p class="folder-description" style="display: none;">{{ folder.description }}</p>
-                {% endif %}
+                    <div class="folder-actions">
+                        <a href="{{ url_for('gallery.subfolder_list', folder_name=folder.name) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> 查看
+                        </a>
+                        {% if folder.has_images %}
+                        <a href="{{ url_for('gallery.gallery_page', folder_name=folder.name) }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-images"></i> 图片
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="folder-actions">
-                <a href="{{ url_for('gallery.subfolder_list', folder_name=folder.name) }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-eye"></i> 查看
-                </a>
-                {% if folder.has_images %}
-                <a href="{{ url_for('gallery.gallery_page', folder_name=folder.name) }}" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-images"></i> 图片
-                </a>
-                {% endif %}
+            <div class="folder-status-section">
+                <div class="status-checkboxes" data-folder="{{ folder.name }}">
+                    <label class="status-checkbox" title="研究中">
+                        <input type="checkbox" name="status_{{ folder.name }}" value="researching" class="status-input" data-folder="{{ folder.name }}">
+                        <span class="status-indicator researching">
+                            <i class="fas fa-flask"></i> 研究中
+                        </span>
+                    </label>
+                    <label class="status-checkbox" title="交流过">
+                        <input type="checkbox" name="status_{{ folder.name }}" value="communicated" class="status-input" data-folder="{{ folder.name }}">
+                        <span class="status-indicator communicated">
+                            <i class="fas fa-comments"></i> 交流过
+                        </span>
+                    </label>
+                    <label class="status-checkbox" title="已收尾">
+                        <input type="checkbox" name="status_{{ folder.name }}" value="completed" class="status-input" data-folder="{{ folder.name }}">
+                        <span class="status-indicator completed">
+                            <i class="fas fa-check-circle"></i> 已收尾
+                        </span>
+                    </label>
+                </div>
             </div>
         </div>
         {% endfor %}
