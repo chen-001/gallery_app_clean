@@ -610,9 +610,13 @@ def api_calculate_correlation():
 
         if result["success"]:
             from datetime import datetime
+            from backend.utils.correlation_utils import save_correlation_history
 
             result["id"] = str(uuid.uuid4())[:8]
             result["timestamp"] = datetime.now().isoformat()
+
+            # 自动保存到历史记录
+            save_correlation_history(result)
 
         return jsonify(result)
 
