@@ -249,7 +249,7 @@ async function copyToClipboard(text) {
 }
 
 // 确认对话框
-function confirm(message, callback) {
+function showConfirm(message, callback) {
     if (window.confirm(message)) {
         callback();
     }
@@ -266,5 +266,5 @@ window.galleryApp = {
     formatFileSize,
     formatDateTime,
     copyToClipboard,
-    confirm
+    showConfirm
 };

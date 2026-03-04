@@ -2503,14 +2503,18 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('计算时已自动保存到历史记录');
     });
     
+    // 历史记录数据缓存（用于点击历史记录时获取数据）
+    let historyDataCache = [];
+    
     // 加载历史记录
     function loadCorrelationHistory() {
         fetch('/gallery/api/correlation/history')
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data.length > 0) {
-                correlationHistoryList.innerHTML = data.data.map(record => `
-                    <div class="history-item" data-record='${JSON.stringify(record)}'>
+                historyDataCache = data.data;
+                const htmlParts = data.data.map(record => `
+                    <div class="history-item" data-id="${record.id}">
                         <div class="history-item-info">
                             <div class="version">${record.factor_version}</div>
                             <div class="factors">${record.factor_names.length}个因子: ${record.factor_names.slice(0, 3).join(', ')}${record.factor_names.length > 3 ? '...' : ''}</div>
@@ -2520,8 +2524,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                `).join('');
+                `);
+                correlationHistoryList.innerHTML = htmlParts.join('');
             } else {
+                historyDataCache = [];
                 correlationHistoryList.innerHTML = '<p class="empty-hint">暂无历史记录</p>';
             }
         })
@@ -2533,9 +2539,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 使用事件委托处理历史记录点击和删除
     correlationHistoryList.addEventListener('click', function(e) {
+        e.stopPropagation();
         const deleteBtn = e.target.closest('.history-item-delete');
         if (deleteBtn) {
-            e.stopPropagation();
             e.preventDefault();
             const id = deleteBtn.dataset.id;
             if (confirm('确定删除此历史记录？')) {
@@ -2558,10 +2564,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const historyItem = e.target.closest('.history-item');
         if (historyItem) {
-            const record = JSON.parse(historyItem.dataset.record);
-            currentCorrelationResult = record;
-            showCorrelationResult(record);
-            floatingCorrelationWindow.classList.remove('show');
+            const id = historyItem.dataset.id;
+            const record = historyDataCache.find(r => r.id === id);
+            if (record) {
+                currentCorrelationResult = record;
+                showCorrelationResult(record);
+                floatingCorrelationWindow.classList.remove('show');
+            }
         }
     });
 });
