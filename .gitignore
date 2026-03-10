@@ -99,3 +99,8 @@ coverage.xml
 
 # 文档构建输出
 docs/_build/
+
+# 编辑器/工具配置目录
+.claude/
+.entire/
+.factory/
