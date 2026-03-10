@@ -156,6 +156,14 @@
                             data-description="{{ image.description or '' }}">
                         <i class="fas fa-edit"></i> 描述
                     </button>
+                    {% if image.description %}
+                    <button class="btn btn-outline-danger btn-clear-desc" 
+                            data-folder="{{ image.relative_path.rsplit('/', 1)[0] if '/' in image.relative_path else folder_name }}" 
+                            data-filename="{{ image.name }}"
+                            title="清除描述">
+                        <i class="fas fa-eraser"></i> 清除描述
+                    </button>
+                    {% endif %}
                     <a href="{{ url_for('gallery.serve_file', file_path=image.relative_path) }}" 
                        class="btn btn-secondary" download>
                         <i class="fas fa-download"></i> 下载
@@ -523,6 +531,38 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameInput.value = currentFilename;
             descriptionTextarea.value = currentDescription;
             modal.style.display = 'flex';
+        }
+        
+        // 清除描述
+        if (e.target.closest('.btn-clear-desc')) {
+            const btn = e.target.closest('.btn-clear-desc');
+            const folder = btn.dataset.folder;
+            const filename = btn.dataset.filename;
+            if (!confirm(`确定要清除 ${filename} 的描述吗？`)) return;
+            
+            fetch(`/gallery/api/description/${folder}/${filename}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: '' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('描述已清除');
+                    updateImageDescriptionDisplay(folder, filename, '');
+                    // 同时更新编辑按钮的data-description
+                    const card = btn.closest('.image-card');
+                    if (card) {
+                        const editBtn = card.querySelector('.btn-edit-desc');
+                        if (editBtn) editBtn.dataset.description = '';
+                    }
+                    btn.remove();
+                } else {
+                    alert('清除失败: ' + data.message);
+                }
+            })
+            .catch(err => alert('清除失败: ' + err.message));
+            return;
         }
         
         // 打开删除确认模态框
@@ -1496,6 +1536,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             data-description="${image.description || ''}">
                         <i class="fas fa-edit"></i> 描述
                     </button>
+                    ${description ? `<button class="btn btn-outline-danger btn-clear-desc" 
+                            data-folder="${image.relative_path.includes('/') ? image.relative_path.substr(0, image.relative_path.lastIndexOf('/')) : '{{ folder_name }}'}" 
+                            data-filename="${image.name}"
+                            title="清除描述">
+                        <i class="fas fa-eraser"></i> 清除描述
+                    </button>` : ''}
                     <a href="/gallery/serve/${image.relative_path}" class="btn btn-secondary" download>
                         <i class="fas fa-download"></i> 下载
                     </a>

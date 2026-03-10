@@ -2216,6 +2216,39 @@ document.addEventListener('DOMContentLoaded', function() {
             imageDescriptionTextarea.value = currentDescription;
             descriptionModal.style.display = 'flex';
         }
+        
+        // 清除描述
+        if (e.target.closest('.btn-clear-desc')) {
+            e.stopPropagation();
+            const btn = e.target.closest('.btn-clear-desc');
+            const folder = btn.dataset.folder;
+            const filename = btn.dataset.filename;
+            if (!confirm(`确定要清除 ${filename} 的描述吗？`)) return;
+            
+            fetch(`/gallery/api/description/${folder}/${filename}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: '' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('描述已清除');
+                    // 更新UI：移除描述显示和清除按钮，更新编辑按钮
+                    const card = btn.closest('.described-image-card, .image-card, [class*="card"]') || btn.closest('.image-info')?.parentElement;
+                    if (card) {
+                        const descDiv = card.querySelector('.described-image-description, .image-description');
+                        if (descDiv) descDiv.remove();
+                        const editBtn = card.querySelector('.btn-edit-desc');
+                        if (editBtn) editBtn.dataset.description = '';
+                    }
+                    btn.remove();
+                } else {
+                    alert('清除失败: ' + data.message);
+                }
+            })
+            .catch(err => alert('清除失败: ' + err.message));
+        }
     });
     
     // 关闭描述编辑模态框
@@ -3072,6 +3105,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
                             <i class="fas fa-edit"></i> 编辑描述
                         </button>
+                        <button class="btn btn-sm btn-clear-desc" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
+                                data-filename="${image.name}"
+                                style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; margin-left: 5px;"
+                                title="清除描述">
+                            <i class="fas fa-eraser"></i> 清除描述
+                        </button>
                     </div>
                 </div>
             `;
@@ -3203,6 +3243,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
                             <i class="fas fa-edit"></i> 编辑描述
                         </button>
+                        ${image.has_description ? `<button class="btn btn-sm btn-clear-desc" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
+                                data-filename="${image.name}"
+                                style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; margin-left: 5px;"
+                                title="清除描述">
+                            <i class="fas fa-eraser"></i> 清除描述
+                        </button>` : ''}
                     </div>
                 </div>
             `;
@@ -3421,6 +3468,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer;">
                             <i class="fas fa-edit"></i> 编辑描述
                         </button>
+                        ${image.has_description ? `<button class="btn btn-sm btn-clear-desc" 
+                                data-folder="${image.relative_path.includes('/') ? image.relative_path.substring(0, image.relative_path.lastIndexOf('/')) : ''}" 
+                                data-filename="${image.name}"
+                                style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; margin-left: 5px;"
+                                title="清除描述">
+                            <i class="fas fa-eraser"></i> 清除描述
+                        </button>` : ''}
                     </div>
                 </div>
             `;
