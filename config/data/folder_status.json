@@ -1,5 +1,5 @@
 {
-  "发起进攻": "researching",
+  "发起进攻": "communicated",
   "千色云中-抄底与跟随": "communicated",
   "千色云中-动量学习率": "communicated",
   "故乡钢琴响补充": "researching",
@@ -41,7 +41,8 @@
   "活在每一刻": "completed",
   "银河落九天": "completed",
   "拼团成功": "completed",
-  "日落": "researching",
-  "可观测挂单": "researching",
-  "踏步向何方": "researching"
+  "日落": "communicated",
+  "可观测挂单": "communicated",
+  "踏步向何方": "researching",
+  "个性签名": "researching"
 }
