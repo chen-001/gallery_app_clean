@@ -144,6 +144,8 @@ class GalleryService:
                 all_images = self._sort_by_neu_ret(folder_path, all_images)
             elif sort_by == 'date' or sort_by == 'time':  # 支持date和time两种参数
                 all_images.sort(key=lambda x: x.get('date', ''), reverse=True)
+            elif sort_by == 'size':
+                all_images.sort(key=lambda x: x.get('size', 0), reverse=True)
             else:
                 # 默认按文件名排序
                 all_images.sort(key=lambda x: x['name'].lower())

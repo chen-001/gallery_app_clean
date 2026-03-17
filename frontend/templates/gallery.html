@@ -1063,111 +1063,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 应用筛选和排序
     function applyFiltersAndSort() {
-        if (!galleryGrid || originalImageCards.length === 0) return;
+        if (!galleryGrid) return;
         
         const sortBy = sortBySelect ? sortBySelect.value : 'neu_ret';
         const sortOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
         const filterType = filterTypeSelect ? filterTypeSelect.value : 'all';
         const searchTerm = searchInput ? searchInput.value.trim() : '';
         
-        // 如果是收益率排序，使用AJAX获取数据而不是重新加载页面
-        if (sortBy === 'neu_ret') {
-            applySortByNeuRet(filterType, sortOrder, searchTerm);
-            return;
-        }
-        
-        // 过滤图片
-        let filteredCards = originalImageCards.filter(card => {
-            const imageCard = card;
-            const fileName = imageCard.querySelector('.image-name').textContent.toLowerCase();
-            const hasDescription = imageCard.querySelector('.image-description') !== null;
-            
-            // 文件类型过滤
-            let typeMatch = true;
-            switch (filterType) {
-                case 'described':
-                    typeMatch = hasDescription;
-                    break;
-                case 'svg':
-                    typeMatch = fileName.endsWith('.svg');
-                    break;
-                case 'png':
-                    typeMatch = fileName.endsWith('.png');
-                    break;
-                case 'jpg':
-                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
-                    break;
-                default:
-                    typeMatch = true;
-            }
-            
-            // 搜索关键词过滤
-            let searchMatch = true;
-            if (searchTerm) {
-                const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-                searchMatch = keywords.every(keyword => fileName.includes(keyword));
-            }
-            
-            return typeMatch && searchMatch;
-        });
-        
-        // 排序图片（除了收益率排序）
-        filteredCards.sort((a, b) => {
-            let valueA, valueB;
-            
-            switch (sortBy) {
-                case 'name':
-                    valueA = a.querySelector('.image-name').textContent.toLowerCase();
-                    valueB = b.querySelector('.image-name').textContent.toLowerCase();
-                    break;
-                case 'date':
-                    // 从DOM中提取日期文本，去掉图标和多余空格
-                    const dateTextA = a.querySelector('.fa-calendar')?.parentElement?.textContent || '';
-                    const dateTextB = b.querySelector('.fa-calendar')?.parentElement?.textContent || '';
-                    // 提取实际日期部分，去掉前面的图标空格
-                    const cleanDateA = dateTextA.replace(/^\s*\S+\s*/, '').trim();
-                    const cleanDateB = dateTextB.replace(/^\s*\S+\s*/, '').trim();
-                    // 转换为Date对象进行比较
-                    valueA = cleanDateA ? new Date(cleanDateA) : new Date(0);
-                    valueB = cleanDateB ? new Date(cleanDateB) : new Date(0);
-                    break;
-                case 'size':
-                    const sizeA = a.querySelector('.fa-hdd')?.parentElement?.textContent || '';
-                    const sizeB = b.querySelector('.fa-hdd')?.parentElement?.textContent || '';
-                    valueA = sizeA;
-                    valueB = sizeB;
-                    break;
-                default:
-                    valueA = a.querySelector('.image-name').textContent.toLowerCase();
-                    valueB = b.querySelector('.image-name').textContent.toLowerCase();
-            }
-            
-            // 对于日期类型，使用数字比较
-            if (sortBy === 'date') {
-                if (sortOrder === 'desc') {
-                    return valueB.getTime() - valueA.getTime();
-                } else {
-                    return valueA.getTime() - valueB.getTime();
-                }
-            } else {
-                // 对于其他类型，使用字符串比较
-                if (sortOrder === 'desc') {
-                    return valueB.localeCompare(valueA);
-                } else {
-                    return valueA.localeCompare(valueB);
-                }
-            }
-        });
-        
-        // 清空并重新添加过滤后的图片
-        galleryGrid.innerHTML = '';
-        filteredCards.forEach(card => galleryGrid.appendChild(card));
-        
-        // 更新计数
-        const subtitle = document.querySelector('.subtitle');
-        if (subtitle && subtitle.textContent.includes('张图片')) {
-            subtitle.textContent = `共 ${filteredCards.length} 张图片 (已筛选)`;
-        }
+        // 所有排序方式都通过AJAX从后端获取正确排序的数据
+        applySortFromServer(sortBy, filterType, sortOrder, searchTerm);
     }
     
     // 重置筛选
@@ -1186,15 +1090,15 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFiltersAndSort();
     }
     
-    // 收益率排序功能（支持懒加载）
-    function applySortByNeuRet(filterType, sortOrder, searchTerm = '') {
+    // 通用排序功能（支持懒加载，通过AJAX从后端获取排序数据）
+    function applySortFromServer(sortBy, filterType, sortOrder, searchTerm = '') {
         if (!galleryGrid) return;
         
         // 重置分页状态
         resetToFirstPage();
         
         // 使用AJAX获取第一页排序数据
-        fetch(`/gallery/api/folder/${folderName}/images?page=1&per_page=${perPage}&sort=neu_ret`)
+        fetch(`/gallery/api/folder/${folderName}/images?page=1&per_page=${perPage}&sort=${encodeURIComponent(sortBy)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.images) {
@@ -1235,8 +1139,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         return typeMatch && searchMatch;
                     });
                     
-                    // 应用排序顺序（收益率数据已经从后端按降序排序）
-                    if (sortOrder === 'asc') {
+                    // 应用排序顺序（后端默认按降序/自然序返回，asc时反转）
+                    if (sortOrder === 'asc' && (sortBy === 'neu_ret' || sortBy === 'date' || sortBy === 'time')) {
+                        imagesToShow.reverse();
+                    } else if (sortOrder === 'desc' && sortBy === 'name') {
                         imagesToShow.reverse();
                     }
                     
