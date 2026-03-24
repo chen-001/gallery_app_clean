@@ -90,12 +90,42 @@
                 </button>
             </div>
             <div class="control-group">
+                <label for="toggleDedupeSimilar">收益率去重:</label>
+                <button id="toggleDedupeSimilar" class="btn btn-secondary" type="button">
+                    <i class="fas fa-object-ungroup"></i> 去除高相关重复因子
+                </button>
+                <small id="dedupeHint" class="control-hint">仅收益率排序下可用，阈值 0.6</small>
+            </div>
+            <div class="control-group">
                 <button id="applyFilters" class="btn btn-primary">
                     <i class="fas fa-filter"></i> 应用筛选
                 </button>
                 <button id="resetFilters" class="btn btn-secondary">
                     <i class="fas fa-undo"></i> 重置
                 </button>
+            </div>
+            <div id="dedupeProgressPanel" class="dedupe-progress-panel" style="display: none;">
+                <div class="dedupe-progress-header">
+                    <span class="dedupe-progress-title">
+                        <i class="fas fa-tasks"></i> 高相关去重进度
+                    </span>
+                    <span id="dedupeProgressStatus" class="dedupe-progress-status">等待开始</span>
+                </div>
+                <div class="dedupe-progress-bar">
+                    <div id="dedupeProgressFill" class="dedupe-progress-fill"></div>
+                </div>
+                <div class="dedupe-progress-metrics">
+                    <span id="dedupeProgressCount">已处理 0 / 0</span>
+                    <span id="dedupeProgressKept">已保留 0 个</span>
+                    <span id="dedupeProgressElapsed">耗时 0s</span>
+                    <span id="dedupeProgressEta">预计剩余 --</span>
+                </div>
+                <div id="dedupeProgressMessage" class="dedupe-progress-message">准备开始</div>
+                <div class="dedupe-progress-actions">
+                    <button id="continueDedupeBtn" class="btn btn-warning" type="button" style="display: none;">
+                        <i class="fas fa-forward"></i> 继续计算
+                    </button>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -143,6 +173,23 @@
                 {% if image.description %}
                 <div class="image-description">
                     <i class="fas fa-comment"></i> {{ image.description }}
+                </div>
+                {% endif %}
+                {% if image.dedupe_compared_count is defined %}
+                <div class="image-correlation-info">
+                    <i class="fas fa-project-diagram"></i>
+                    {% if image.dedupe_compared_count == 0 %}
+                    前 0 个更高收益因子：无
+                    {% elif image.dedupe_max_corr is not none and image.dedupe_max_corr_factor_name %}
+                    前 {{ image.dedupe_compared_count }} 个更高收益因子中最相关：
+                    {{ image.dedupe_max_corr_factor_name }}
+                    {% if image.dedupe_max_corr_factor_version and image.dedupe_max_corr_factor_version != image.factor_version %}
+                    [{{ image.dedupe_max_corr_factor_version }}]
+                    {% endif %}
+                    ，相关性 {{ "%.4f" | format(image.dedupe_max_corr) }}
+                    {% else %}
+                    已比较前 {{ image.dedupe_compared_count }} 个更高收益因子，暂无有效相关性
+                    {% endif %}
                 </div>
                 {% endif %}
                 <div class="image-actions">
@@ -1053,12 +1100,434 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterTypeSelect = document.getElementById('filterType');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearch');
+    const toggleDedupeSimilarBtn = document.getElementById('toggleDedupeSimilar');
+    const dedupeHint = document.getElementById('dedupeHint');
+    const dedupeProgressPanel = document.getElementById('dedupeProgressPanel');
+    const dedupeProgressStatus = document.getElementById('dedupeProgressStatus');
+    const dedupeProgressFill = document.getElementById('dedupeProgressFill');
+    const dedupeProgressCount = document.getElementById('dedupeProgressCount');
+    const dedupeProgressKept = document.getElementById('dedupeProgressKept');
+    const dedupeProgressElapsed = document.getElementById('dedupeProgressElapsed');
+    const dedupeProgressEta = document.getElementById('dedupeProgressEta');
+    const dedupeProgressMessage = document.getElementById('dedupeProgressMessage');
+    const continueDedupeBtn = document.getElementById('continueDedupeBtn');
+    const initialSortBy = '{{ request.args.get("sort", "neu_ret") }}';
+    const initialSortOrder = 'desc';
+    const initialDedupeSimilar = {{ 'true' if dedupe_similar else 'false' }};
+    const initialDedupeState = {{ (images.get('dedupe_state') if images else none) | tojson }};
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasExplicitGalleryStateInUrl = urlParams.has('sort') || urlParams.has('dedupe_similar');
+    let dedupeSimilar = initialDedupeSimilar;
+    let currentDedupeTaskId = null;
+    let dedupeStreamMode = false;
+    let dedupeRenderedPaths = new Set();
+    let dedupeTargetKeptLimit = initialDedupeState && initialDedupeState.target_kept_limit
+        ? Number(initialDedupeState.target_kept_limit)
+        : 50;
+    let dedupeNextTargetKept = initialDedupeState && initialDedupeState.next_target_kept
+        ? Number(initialDedupeState.next_target_kept)
+        : 50;
     
     let originalImageCards = [];
     
     // 保存原始图片卡片顺序
     if (galleryGrid) {
         originalImageCards = Array.from(galleryGrid.children);
+    }
+
+    function getCurrentSortBy() {
+        return sortBySelect ? sortBySelect.value : initialSortBy;
+    }
+
+    function shouldEnableDedupe(sortBy = getCurrentSortBy()) {
+        return sortBy === 'neu_ret';
+    }
+
+    function syncDedupeStateWithSort(sortBy = getCurrentSortBy(), clearWhenDisabled = true) {
+        if (!shouldEnableDedupe(sortBy) && clearWhenDisabled) {
+            dedupeSimilar = false;
+        }
+    }
+
+    function isDedupeActive(sortBy = getCurrentSortBy()) {
+        return shouldEnableDedupe(sortBy) && dedupeSimilar;
+    }
+
+    function updateDedupeButtonState(sortBy = getCurrentSortBy()) {
+        if (!toggleDedupeSimilarBtn) return;
+
+        const enabled = shouldEnableDedupe(sortBy);
+        toggleDedupeSimilarBtn.disabled = !enabled;
+        toggleDedupeSimilarBtn.classList.remove('btn-secondary', 'btn-warning');
+        toggleDedupeSimilarBtn.classList.add(enabled && dedupeSimilar ? 'btn-warning' : 'btn-secondary');
+
+        if (enabled && dedupeSimilar) {
+            toggleDedupeSimilarBtn.innerHTML = '<i class="fas fa-check-circle"></i> 已开启高相关去重';
+        } else {
+            toggleDedupeSimilarBtn.innerHTML = '<i class="fas fa-object-ungroup"></i> 去除高相关重复因子';
+        }
+
+        if (dedupeHint) {
+            dedupeHint.textContent = enabled
+                ? (dedupeSimilar ? '当前只保留相对不同的高收益因子，阈值 0.6' : '仅收益率排序下可用，阈值 0.6')
+                : '切回收益率排序后才可开启该筛选';
+        }
+    }
+
+    function syncPageUrl() {
+        const currentUrl = new URL(window.location.href);
+        const currentSort = getCurrentSortBy();
+
+        if (currentSort && currentSort !== 'neu_ret') {
+            currentUrl.searchParams.set('sort', currentSort);
+        } else {
+            currentUrl.searchParams.delete('sort');
+        }
+
+        if (isDedupeActive(currentSort)) {
+            currentUrl.searchParams.set('dedupe_similar', '1');
+        } else {
+            currentUrl.searchParams.delete('dedupe_similar');
+        }
+
+        currentUrl.searchParams.delete('page');
+        currentUrl.searchParams.delete('per_page');
+        window.history.replaceState({}, '', currentUrl.toString());
+    }
+
+    function buildGalleryApiUrl(page, sortBy, options = {}) {
+        const params = new URLSearchParams({
+            page: String(page),
+            per_page: String(perPage),
+            sort: sortBy
+        });
+
+        if (isDedupeActive(sortBy)) {
+            params.set('dedupe_similar', '1');
+            params.set(
+                'dedupe_target_kept',
+                String(options.targetKeptLimit || dedupeTargetKeptLimit || 50)
+            );
+            if (options.continueRequested) {
+                params.set('dedupe_continue', '1');
+            }
+        }
+
+        return `/gallery/api/folder/${folderName}/images?${params.toString()}`;
+    }
+
+    function formatDuration(seconds) {
+        if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) {
+            return '--';
+        }
+
+        const totalSeconds = Math.max(0, Math.round(Number(seconds)));
+        const minutes = Math.floor(totalSeconds / 60);
+        const remainSeconds = totalSeconds % 60;
+
+        if (minutes <= 0) {
+            return `${remainSeconds}s`;
+        }
+
+        return `${minutes}m ${remainSeconds}s`;
+    }
+
+    function hideDedupeProgressPanel() {
+        if (!dedupeProgressPanel) return;
+        dedupeProgressPanel.style.display = 'none';
+    }
+
+    function showDedupeProgressPanel() {
+        if (!dedupeProgressPanel) return;
+        dedupeProgressPanel.style.display = 'block';
+    }
+
+    function resetDedupeProgressPanel() {
+        if (!dedupeProgressPanel) return;
+
+        if (dedupeProgressFill) dedupeProgressFill.style.width = '0%';
+        if (dedupeProgressStatus) dedupeProgressStatus.textContent = '等待开始';
+        if (dedupeProgressCount) dedupeProgressCount.textContent = '已处理 0 / 0';
+        if (dedupeProgressKept) dedupeProgressKept.textContent = '已保留 0 个';
+        if (dedupeProgressElapsed) dedupeProgressElapsed.textContent = '耗时 0s';
+        if (dedupeProgressEta) dedupeProgressEta.textContent = '预计剩余 --';
+        if (dedupeProgressMessage) dedupeProgressMessage.textContent = '准备开始';
+        updateDedupeContinueButton(null);
+    }
+
+    function updateDedupeContinueButton(state) {
+        if (!continueDedupeBtn) return;
+
+        const canContinue = Boolean(state && state.can_continue);
+        const nextTarget = state && state.next_target_kept
+            ? Number(state.next_target_kept)
+            : dedupeNextTargetKept;
+        const hardStopLimit = state && state.hard_stop_limit
+            ? Number(state.hard_stop_limit)
+            : 100;
+        const currentTarget = state && state.target_kept_limit
+            ? Number(state.target_kept_limit)
+            : dedupeTargetKeptLimit;
+
+        if (state && state.target_kept_limit) {
+            dedupeTargetKeptLimit = currentTarget;
+        }
+        if (state && state.next_target_kept) {
+            dedupeNextTargetKept = nextTarget;
+        }
+
+        if (!canContinue) {
+            continueDedupeBtn.style.display = 'none';
+            continueDedupeBtn.disabled = false;
+            return;
+        }
+
+        continueDedupeBtn.style.display = 'inline-flex';
+        continueDedupeBtn.disabled = Boolean(currentDedupeTaskId);
+        continueDedupeBtn.innerHTML = nextTarget > currentTarget && nextTarget <= hardStopLimit
+            ? `<i class="fas fa-forward"></i> 继续计算到 ${nextTarget} 个`
+            : '<i class="fas fa-forward"></i> 继续计算';
+    }
+
+    function applyDedupeStateFromServer(state) {
+        if (!state) {
+            updateDedupeContinueButton(null);
+            return;
+        }
+
+        if (state.target_kept_limit) {
+            dedupeTargetKeptLimit = Number(state.target_kept_limit);
+        }
+        if (state.next_target_kept) {
+            dedupeNextTargetKept = Number(state.next_target_kept);
+        }
+        updateDedupeContinueButton(state);
+    }
+
+    function resetDedupeControlState() {
+        dedupeTargetKeptLimit = 50;
+        dedupeNextTargetKept = 50;
+        updateDedupeContinueButton(null);
+    }
+
+    function shouldPreserveCurrentDedupeResults() {
+        const hasRenderedCards = Boolean(
+            galleryGrid && galleryGrid.querySelectorAll('.image-card').length > 0
+        );
+        const hasContinueState = Boolean(
+            continueDedupeBtn && continueDedupeBtn.style.display !== 'none'
+        );
+        return (dedupeStreamMode && dedupeRenderedPaths.size > 0)
+            || (hasRenderedCards && hasContinueState);
+    }
+
+    function updateDedupeProgressPanel(progressData) {
+        if (!dedupeProgressPanel || !progressData) return;
+
+        showDedupeProgressPanel();
+
+        const processedFactors = Number(progressData.processed_factors || 0);
+        const totalFactors = Number(progressData.total_factors || 0);
+        const keptFactors = Number(progressData.kept_factors || 0);
+        const progressPercent = Number(progressData.progress_percent || 0);
+        const elapsedSeconds = progressData.elapsed_seconds;
+        const etaSeconds = progressData.eta_seconds;
+
+        if (dedupeProgressFill) {
+            dedupeProgressFill.style.width = `${Math.max(0, Math.min(100, progressPercent))}%`;
+        }
+
+        if (dedupeProgressStatus) {
+            if (progressData.status === 'completed') {
+                dedupeProgressStatus.textContent = '已完成';
+            } else if (progressData.status === 'paused') {
+                dedupeProgressStatus.textContent = '已暂停';
+            } else if (progressData.status === 'failed') {
+                dedupeProgressStatus.textContent = '失败';
+            } else {
+                dedupeProgressStatus.textContent = `${progressPercent}%`;
+            }
+        }
+
+        if (dedupeProgressCount) {
+            dedupeProgressCount.textContent = `已处理 ${processedFactors} / ${totalFactors}`;
+        }
+
+        if (dedupeProgressKept) {
+            dedupeProgressKept.textContent = `已保留 ${keptFactors} 个`;
+        }
+
+        if (dedupeProgressElapsed) {
+            dedupeProgressElapsed.textContent = `耗时 ${formatDuration(elapsedSeconds)}`;
+        }
+
+        if (dedupeProgressEta) {
+            if (progressData.status === 'completed') {
+                dedupeProgressEta.textContent = '预计剩余 0s';
+            } else if (progressData.status === 'paused' || progressData.status === 'failed') {
+                dedupeProgressEta.textContent = '预计剩余 --';
+            } else {
+                dedupeProgressEta.textContent = `预计剩余 ${formatDuration(etaSeconds)}`;
+            }
+        }
+
+        if (dedupeProgressMessage) {
+            const currentFactor = progressData.current_factor ? `，当前: ${progressData.current_factor}` : '';
+            dedupeProgressMessage.textContent = `${progressData.message || '处理中'}${currentFactor}`;
+        }
+
+        applyDedupeStateFromServer(progressData);
+    }
+
+    function updateDedupeGallerySubtitle(totalFactors, keptFactors) {
+        const subtitle = document.querySelector('.subtitle');
+        if (!subtitle) return;
+        subtitle.textContent = `已找到 ${keptFactors} / ${totalFactors} 个低相关因子`;
+    }
+
+    function imageMatchesCurrentFilters(image) {
+        const filterType = filterTypeSelect ? filterTypeSelect.value : 'all';
+        const searchTerm = searchInput ? searchInput.value.trim() : '';
+        const fileName = (image.name || '').toLowerCase();
+        const description = (image.description || '').toLowerCase();
+
+        let typeMatch = true;
+        if (filterType !== 'all') {
+            switch (filterType) {
+                case 'described':
+                    typeMatch = Boolean(image.description && image.description.trim() !== '');
+                    break;
+                case 'svg':
+                    typeMatch = fileName.endsWith('.svg');
+                    break;
+                case 'png':
+                    typeMatch = fileName.endsWith('.png');
+                    break;
+                case 'jpg':
+                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+                    break;
+                default:
+                    typeMatch = true;
+            }
+        }
+
+        if (!searchTerm) {
+            return typeMatch;
+        }
+
+        const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+        const searchMatch = keywords.every(keyword => fileName.includes(keyword) || description.includes(keyword));
+        return typeMatch && searchMatch;
+    }
+
+    function resetDedupeStreamState() {
+        dedupeStreamMode = false;
+        dedupeRenderedPaths = new Set();
+    }
+
+    function renderDedupeStreamSnapshot(images) {
+        if (!galleryGrid) return;
+
+        dedupeStreamMode = true;
+        dedupeRenderedPaths = new Set();
+        galleryGrid.innerHTML = '';
+
+        (images || []).forEach((image) => {
+            if (!image || !image.relative_path || !imageMatchesCurrentFilters(image)) {
+                return;
+            }
+            dedupeRenderedPaths.add(image.relative_path);
+            const card = createImageCardFromData(image, dedupeRenderedPaths.size);
+            galleryGrid.appendChild(card);
+        });
+
+        initializeLazyLoading();
+    }
+
+    function appendDedupeStreamImage(image) {
+        if (!galleryGrid || !image || !image.relative_path || !imageMatchesCurrentFilters(image)) {
+            return;
+        }
+
+        if (!dedupeStreamMode) {
+            dedupeStreamMode = true;
+            dedupeRenderedPaths = new Set();
+            galleryGrid.innerHTML = '';
+        }
+
+        if (dedupeRenderedPaths.has(image.relative_path)) {
+            return;
+        }
+
+        dedupeRenderedPaths.add(image.relative_path);
+        const imageCard = createImageCardFromData(image, dedupeRenderedPaths.size);
+        galleryGrid.appendChild(imageCard);
+        initializeLazyLoading();
+    }
+
+    function buildCorrelationSummaryHtml(image) {
+        if (image.dedupe_compared_count === undefined || image.dedupe_compared_count === null) {
+            return '';
+        }
+
+        const comparedCount = Number(image.dedupe_compared_count || 0);
+        if (comparedCount === 0) {
+            return '<div class="image-correlation-info"><i class="fas fa-project-diagram"></i> 前 0 个更高收益因子：无</div>';
+        }
+
+        if (image.dedupe_max_corr !== undefined && image.dedupe_max_corr !== null && image.dedupe_max_corr_factor_name) {
+            const factorName = String(image.dedupe_max_corr_factor_name)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            const factorVersion = image.dedupe_max_corr_factor_version
+                ? ` [${String(image.dedupe_max_corr_factor_version)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')}]`
+                : '';
+            return `<div class="image-correlation-info"><i class="fas fa-project-diagram"></i> 前 ${comparedCount} 个更高收益因子中最相关：${factorName}${factorVersion}，相关性 ${Number(image.dedupe_max_corr).toFixed(4)}</div>`;
+        }
+
+        return `<div class="image-correlation-info"><i class="fas fa-project-diagram"></i> 已比较前 ${comparedCount} 个更高收益因子，暂无有效相关性</div>`;
+    }
+
+    function captureGallerySnapshot() {
+        const subtitle = document.querySelector('.subtitle');
+        return {
+            html: galleryGrid ? galleryGrid.innerHTML : '',
+            subtitleText: subtitle ? subtitle.textContent : '',
+            currentPage: currentPage,
+            hasMoreImages: hasMoreImages,
+            totalImages: totalImages
+        };
+    }
+
+    function restoreGallerySnapshot(snapshot) {
+        if (!galleryGrid || !snapshot) return;
+
+        galleryGrid.innerHTML = snapshot.html;
+        currentPage = snapshot.currentPage;
+        hasMoreImages = snapshot.hasMoreImages;
+        totalImages = snapshot.totalImages;
+
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle && snapshot.subtitleText) {
+            subtitle.textContent = snapshot.subtitleText;
+        }
+
+        initializeLazyLoading();
+    }
+
+    function showGalleryLoadingState(message) {
+        if (!galleryGrid) return;
+
+        galleryGrid.innerHTML = `
+            <div class="loading-state">
+                <div class="loading"></div>
+                <p>${message}</p>
+            </div>
+        `;
     }
     
     // 应用筛选和排序
@@ -1069,6 +1538,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
         const filterType = filterTypeSelect ? filterTypeSelect.value : 'all';
         const searchTerm = searchInput ? searchInput.value.trim() : '';
+
+        syncDedupeStateWithSort(sortBy);
+        updateDedupeButtonState(sortBy);
+        if (!isDedupeActive(sortBy)) {
+            currentDedupeTaskId = null;
+            hideDedupeProgressPanel();
+            resetDedupeProgressPanel();
+            resetDedupeControlState();
+        }
+        saveUserPreferences();
+        syncPageUrl();
         
         // 所有排序方式都通过AJAX从后端获取正确排序的数据
         applySortFromServer(sortBy, filterType, sortOrder, searchTerm);
@@ -1082,62 +1562,79 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sortOrderSelect) sortOrderSelect.value = 'desc';
         if (filterTypeSelect) filterTypeSelect.value = 'all';
         if (searchInput) searchInput.value = '';
+        dedupeSimilar = false;
         
         // 保存重置后的偏好
         saveUserPreferences();
+        updateDedupeButtonState('neu_ret');
+        syncPageUrl();
         
         // 重新应用排序（收益率降序）
         applyFiltersAndSort();
     }
     
     // 通用排序功能（支持懒加载，通过AJAX从后端获取排序数据）
-    function applySortFromServer(sortBy, filterType, sortOrder, searchTerm = '') {
+    function applySortFromServer(sortBy, filterType, sortOrder, searchTerm = '', options = {}) {
         if (!galleryGrid) return;
+
+        const previousSnapshot = captureGallerySnapshot();
+        const preserveDedupeStream = Boolean(options.preserveDedupeStream);
+        const preservingExistingResults = isDedupeActive(sortBy)
+            && preserveDedupeStream
+            && shouldPreserveCurrentDedupeResults();
+        const requestedTargetKept = Number(options.targetKeptLimit || dedupeTargetKeptLimit || 50);
+        let requestUrl = buildGalleryApiUrl(1, sortBy, {
+            targetKeptLimit: requestedTargetKept,
+            continueRequested: Boolean(options.continueRequested)
+        });
+        if (isDedupeActive(sortBy)) {
+            currentDedupeTaskId = `dedupe-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            dedupeTargetKeptLimit = requestedTargetKept;
+            if (!preserveDedupeStream) {
+                resetDedupeStreamState();
+            }
+            const url = new URL(requestUrl, window.location.origin);
+            url.searchParams.set('dedupe_task_id', currentDedupeTaskId);
+            url.searchParams.set('dedupe_target_kept', String(dedupeTargetKeptLimit || 50));
+            if (options.continueRequested) {
+                url.searchParams.set('dedupe_continue', '1');
+            }
+            requestUrl = `${url.pathname}?${url.searchParams.toString()}`;
+            if (!preserveDedupeStream) {
+                resetDedupeProgressPanel();
+            } else {
+                updateDedupeContinueButton(null);
+            }
+            showDedupeProgressPanel();
+        } else {
+            currentDedupeTaskId = null;
+            resetDedupeStreamState();
+            hideDedupeProgressPanel();
+            resetDedupeProgressPanel();
+            resetDedupeControlState();
+        }
+        const loadingMessage = isDedupeActive(sortBy)
+            ? '正在计算高相关去重，请稍候...'
+            : '正在加载排序结果...';
         
         // 重置分页状态
-        resetToFirstPage();
+        resetToFirstPage(!preservingExistingResults);
+        isLoading = true;
+        hasMoreImages = false;
+        if (!preservingExistingResults) {
+            showGalleryLoadingState(loadingMessage);
+        }
         
         // 使用AJAX获取第一页排序数据
-        fetch(`/gallery/api/folder/${folderName}/images?page=1&per_page=${perPage}&sort=${encodeURIComponent(sortBy)}`)
+        fetch(requestUrl)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.images) {
                     let imagesToShow = data.data.images;
-                    
+                    applyDedupeStateFromServer(data.data.dedupe_state || null);
+
                     // 应用过滤器和搜索
-                    imagesToShow = imagesToShow.filter(image => {
-                        const fileName = image.name.toLowerCase();
-                        
-                        // 文件类型过滤
-                        let typeMatch = true;
-                        if (filterType !== 'all') {
-                            switch (filterType) {
-                                case 'described':
-                                    typeMatch = image.description && image.description.trim() !== '';
-                                    break;
-                                case 'svg':
-                                    typeMatch = fileName.endsWith('.svg');
-                                    break;
-                                case 'png':
-                                    typeMatch = fileName.endsWith('.png');
-                                    break;
-                                case 'jpg':
-                                    typeMatch = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
-                                    break;
-                                default:
-                                    typeMatch = true;
-                            }
-                        }
-                        
-                        // 搜索关键词过滤
-                        let searchMatch = true;
-                        if (searchTerm) {
-                            const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-                            searchMatch = keywords.every(keyword => fileName.includes(keyword));
-                        }
-                        
-                        return typeMatch && searchMatch;
-                    });
+                    imagesToShow = imagesToShow.filter(image => imageMatchesCurrentFilters(image));
                     
                     // 应用排序顺序（后端默认按降序/自然序返回，asc时反转）
                     if (sortOrder === 'asc' && (sortBy === 'neu_ret' || sortBy === 'date' || sortBy === 'time')) {
@@ -1146,42 +1643,90 @@ document.addEventListener('DOMContentLoaded', function() {
                         imagesToShow.reverse();
                     }
                     
-                    // 重新渲染图片
-                    imagesToShow.forEach((image, index) => {
-                        const imageCard = createImageCardFromData(image, index + 1);
-                        galleryGrid.appendChild(imageCard);
-                    });
-                    
                     // 更新分页信息
-                    hasMoreImages = data.data.has_next;
+                    currentPage = 1;
+                    hasMoreImages = isDedupeActive(sortBy) ? false : data.data.has_next;
                     totalImages = data.data.total;
-                    
-                    // 更新计数
-                    const subtitle = document.querySelector('.subtitle');
-                    if (subtitle && subtitle.textContent.includes('张图片')) {
-                        subtitle.textContent = `已加载 ${imagesToShow.length} / ${totalImages} 张图片`;
+
+                    if (!(isDedupeActive(sortBy) && (dedupeStreamMode || preservingExistingResults))) {
+                        galleryGrid.innerHTML = '';
+
+                        // 重新渲染图片
+                        imagesToShow.forEach((image, index) => {
+                            const imageCard = createImageCardFromData(image, index + 1);
+                            galleryGrid.appendChild(imageCard);
+                        });
+
+                        const subtitle = document.querySelector('.subtitle');
+                        if (subtitle && subtitle.textContent.includes('张图片')) {
+                            subtitle.textContent = `已加载 ${imagesToShow.length} / ${totalImages} 张图片`;
+                        }
+
+                        // 重新初始化懒加载
+                        initializeLazyLoading();
                     }
-                    
-                    // 重新初始化懒加载
-                    initializeLazyLoading();
                 } else {
                     console.error('Failed to fetch sorted images:', data.message);
-                    // 如果AJAX失败，回退到客户端排序
-                    console.warn('AJAX排序失败，使用客户端排序');
-                    // 将排序方式改为名称排序，避免无限循环
-                    if (sortBySelect) sortBySelect.value = 'name';
-                    // 使用现有的图片进行客户端排序
-                    applyClientSideSort(filterType, sortOrder, searchTerm);
+                    if (isDedupeActive(sortBy)) {
+                        updateDedupeProgressPanel({
+                            status: 'failed',
+                            processed_factors: 0,
+                            total_factors: 0,
+                            kept_factors: 0,
+                            progress_percent: 0,
+                            elapsed_seconds: 0,
+                            eta_seconds: null,
+                            message: `排序请求失败: ${data.message || '未知错误'}`
+                        });
+                    }
+                    currentDedupeTaskId = null;
+                    if (!shouldPreserveCurrentDedupeResults()) {
+                        restoreGallerySnapshot(previousSnapshot);
+                    }
+                    if (window.galleryApp && window.galleryApp.showMessage) {
+                        window.galleryApp.showMessage(
+                            shouldPreserveCurrentDedupeResults()
+                                ? `排序请求失败，但已保留当前去重结果: ${data.message || '未知错误'}`
+                                : `排序请求失败: ${data.message || '未知错误'}`,
+                            'error'
+                        );
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error fetching sorted images:', error);
-                // 如果AJAX失败，回退到客户端排序
-                console.warn('网络请求失败，使用客户端排序');
-                // 将排序方式改为名称排序，避免无限循环
-                if (sortBySelect) sortBySelect.value = 'name';
-                // 使用现有的图片进行客户端排序
-                applyClientSideSort(filterType, sortOrder, searchTerm);
+                if (isDedupeActive(sortBy)) {
+                    updateDedupeProgressPanel({
+                        status: 'failed',
+                        processed_factors: 0,
+                        total_factors: 0,
+                        kept_factors: 0,
+                        progress_percent: 0,
+                        elapsed_seconds: 0,
+                        eta_seconds: null,
+                        message: '排序请求失败，网络或服务器异常'
+                    });
+                }
+                currentDedupeTaskId = null;
+                if (!shouldPreserveCurrentDedupeResults()) {
+                    restoreGallerySnapshot(previousSnapshot);
+                }
+                if (window.galleryApp && window.galleryApp.showMessage) {
+                    window.galleryApp.showMessage(
+                        shouldPreserveCurrentDedupeResults()
+                            ? '排序请求失败，已保留当前去重结果'
+                            : '排序请求失败，已保留当前排序结果',
+                        'error'
+                    );
+                }
+            })
+            .finally(() => {
+                isLoading = false;
+                updateDedupeContinueButton({
+                    can_continue: continueDedupeBtn && continueDedupeBtn.style.display !== 'none',
+                    target_kept_limit: dedupeTargetKeptLimit,
+                    next_target_kept: dedupeNextTargetKept
+                });
             });
     }
     
@@ -1403,6 +1948,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 收益率显示
         const neuRetDisplay = image.neu_ret ? 
             `<span><i class="fas fa-chart-line"></i> 收益率: ${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
+        const correlationSummary = buildCorrelationSummaryHtml(image);
         
         // 对路径进行URL编码以处理中文字符
         const encodedPath = encodeURI(image.relative_path);
@@ -1432,6 +1978,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${image.date ? `<span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>` : ''}
                 </div>
                 ${description ? `<div class="image-description"><i class="fas fa-comment"></i> ${description}</div>` : ''}
+                ${correlationSummary}
                 <div class="image-actions">
                     <a href="/gallery/viewer/${image.relative_path}" class="btn btn-primary" target="_blank">
                         <i class="fas fa-eye"></i> 查看
@@ -1510,14 +2057,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 重置为第一页（搜索和筛选时使用）
-    function resetToFirstPage() {
+    function resetToFirstPage(clearGallery = true) {
         currentPage = 1;
         hasMoreImages = true;
         isLoading = false;
         
         // 清空画廊
         const galleryGrid = document.querySelector('.gallery-grid');
-        if (galleryGrid) {
+        if (clearGallery && galleryGrid) {
             galleryGrid.innerHTML = '';
         }
     }
@@ -1530,28 +2077,95 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', resetFilters);
     }
+
+    if (toggleDedupeSimilarBtn) {
+        toggleDedupeSimilarBtn.addEventListener('click', function() {
+            if (!shouldEnableDedupe()) {
+                return;
+            }
+
+            dedupeSimilar = !dedupeSimilar;
+            if (dedupeSimilar) {
+                resetDedupeControlState();
+            } else {
+                resetDedupeControlState();
+                hideDedupeProgressPanel();
+            }
+            updateDedupeButtonState();
+            saveUserPreferences();
+            syncPageUrl();
+            applyFiltersAndSort();
+        });
+    }
+
+    if (continueDedupeBtn) {
+        continueDedupeBtn.addEventListener('click', function() {
+            if (!isDedupeActive()) {
+                return;
+            }
+
+            applySortFromServer(
+                sortBySelect ? sortBySelect.value : 'neu_ret',
+                filterTypeSelect ? filterTypeSelect.value : 'all',
+                sortOrderSelect ? sortOrderSelect.value : 'desc',
+                searchInput ? searchInput.value.trim() : '',
+                {
+                    preserveDedupeStream: true,
+                    targetKeptLimit: dedupeNextTargetKept,
+                    continueRequested: true
+                }
+            );
+        });
+    }
+
+    socket.on('dedupe_progress', function(progressData) {
+        if (!progressData || !progressData.task_id || progressData.task_id !== currentDedupeTaskId) {
+            return;
+        }
+
+        updateDedupeProgressPanel(progressData);
+        updateDedupeGallerySubtitle(
+            Number(progressData.total_factors || 0),
+            Number(progressData.kept_factors || 0),
+        );
+
+        if (progressData.replace_gallery && Array.isArray(progressData.kept_images)) {
+            renderDedupeStreamSnapshot(progressData.kept_images);
+        }
+
+        if (progressData.new_kept_image) {
+            appendDedupeStreamImage(progressData.new_kept_image);
+        }
+
+        if (progressData.status === 'completed' || progressData.status === 'failed' || progressData.status === 'paused') {
+            currentDedupeTaskId = null;
+            updateDedupeContinueButton(progressData);
+        }
+    });
     
     // 用户偏好管理
     function saveUserPreferences() {
         const preferences = {
-            sortBy: sortBySelect ? sortBySelect.value : 'neu_ret',
-            sortOrder: sortOrderSelect ? sortOrderSelect.value : 'desc',
+            sortBy: getCurrentSortBy(),
+            sortOrder: sortOrderSelect ? sortOrderSelect.value : initialSortOrder,
             filterType: filterTypeSelect ? filterTypeSelect.value : 'all',
-            searchTerm: searchInput ? searchInput.value : ''
+            searchTerm: searchInput ? searchInput.value : '',
+            dedupeSimilar: isDedupeActive()
         };
         localStorage.setItem('galleryPreferences', JSON.stringify(preferences));
     }
     
     function loadUserPreferences() {
         // 首先设置默认值
-        if (sortBySelect) sortBySelect.value = 'neu_ret';
-        if (sortOrderSelect) sortOrderSelect.value = 'desc';
+        if (sortBySelect) sortBySelect.value = initialSortBy;
+        if (sortOrderSelect) sortOrderSelect.value = initialSortOrder;
         if (filterTypeSelect) filterTypeSelect.value = 'all';
         if (searchInput) searchInput.value = '';
+        dedupeSimilar = initialDedupeSimilar;
         
         // 然后加载用户偏好设置（如果存在）
         const saved = localStorage.getItem('galleryPreferences');
-        if (saved) {
+        if (saved && !hasExplicitGalleryStateInUrl) {
             try {
                 const preferences = JSON.parse(saved);
                 if (sortBySelect && preferences.sortBy) {
@@ -1566,14 +2180,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (searchInput && preferences.searchTerm) {
                     searchInput.value = preferences.searchTerm;
                 }
+                dedupeSimilar = Boolean(preferences.dedupeSimilar);
             } catch (e) {
                 console.warn('Failed to load user preferences:', e);
             }
         }
+
+        syncDedupeStateWithSort(getCurrentSortBy());
+        updateDedupeButtonState(getCurrentSortBy());
+        syncPageUrl();
     }
     
     // 恢复用户偏好设置
     loadUserPreferences();
+    if (initialDedupeSimilar && initialDedupeState) {
+        showDedupeProgressPanel();
+        updateDedupeProgressPanel(initialDedupeState);
+        updateDedupeGallerySubtitle(
+            Number(initialDedupeState.total_factors || 0),
+            Number(initialDedupeState.kept_factors || 0),
+        );
+    }
     
     // 页面加载后确保正确的排序显示
     setTimeout(function() {
@@ -1581,19 +2208,21 @@ document.addEventListener('DOMContentLoaded', function() {
             // 如果后端已经提供了按收益率排序的数据，并且当前设置也是收益率排序，则不需要重新排序
             const currentSortBy = sortBySelect ? sortBySelect.value : 'neu_ret';
             const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
+            const currentDedupeState = isDedupeActive(currentSortBy);
             
             // 如果当前设置不是默认的收益率降序排序，或者有搜索/筛选条件，则重新应用排序
             const saved = localStorage.getItem('galleryPreferences');
             let shouldApplySort = false;
             
-            if (saved) {
+            if (saved && !hasExplicitGalleryStateInUrl) {
                 try {
                     const preferences = JSON.parse(saved);
                     // 检查是否有非默认的设置
                     if (preferences.sortBy !== 'neu_ret' || 
                         preferences.sortOrder !== 'desc' || 
                         preferences.filterType !== 'all' || 
-                        (preferences.searchTerm && preferences.searchTerm.trim() !== '')) {
+                        (preferences.searchTerm && preferences.searchTerm.trim() !== '') ||
+                        Boolean(preferences.dedupeSimilar)) {
                         shouldApplySort = true;
                     }
                 } catch (e) {
@@ -1602,7 +2231,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 如果需要重新排序，或者当前选择不是默认值，则应用排序
-            if (shouldApplySort || currentSortBy !== 'neu_ret' || currentSortOrder !== 'desc') {
+            if (
+                shouldApplySort ||
+                currentSortBy !== initialSortBy ||
+                currentSortOrder !== initialSortOrder ||
+                currentDedupeState !== initialDedupeSimilar
+            ) {
                 applyFiltersAndSort();
             }
         }
@@ -1612,7 +2246,12 @@ document.addEventListener('DOMContentLoaded', function() {
     [sortBySelect, sortOrderSelect, filterTypeSelect].forEach(select => {
         if (select) {
             select.addEventListener('change', function() {
+                if (select === sortBySelect) {
+                    syncDedupeStateWithSort(sortBySelect.value);
+                    updateDedupeButtonState(sortBySelect.value);
+                }
                 saveUserPreferences();
+                syncPageUrl();
                 applyFiltersAndSort();
             });
         }
@@ -1750,7 +2389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentSort = sortBySelect ? sortBySelect.value : 'neu_ret';
         const currentOrder = sortOrderSelect ? sortOrderSelect.value : 'desc';
         
-        fetch(`/gallery/api/folder/${folderName}/images?page=${nextPage}&per_page=${perPage}&sort=${currentSort}`)
+        fetch(buildGalleryApiUrl(nextPage, currentSort))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.images) {
@@ -1812,6 +2451,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 收益率显示
         const neuRetDisplay = image.neu_ret ? 
             `<span><i class="fas fa-chart-line"></i> 收益率: ${(image.neu_ret * 100).toFixed(2)}%</span>` : '';
+        const correlationSummary = buildCorrelationSummaryHtml(image);
         
         // 对路径进行URL编码以处理中文字符
         const encodedPath = encodeURI(image.relative_path);
@@ -1841,6 +2481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${image.date ? `<span><i class="fas fa-calendar"></i> ${new Date(image.date).toLocaleDateString()}</span>` : ''}
                 </div>
                 ${description ? `<div class="image-description"><i class="fas fa-comment"></i> ${description}</div>` : ''}
+                ${correlationSummary}
                 <div class="image-actions">
                     <a href="/gallery/viewer/${image.relative_path}" class="btn btn-primary" target="_blank">
                         <i class="fas fa-eye"></i> 查看

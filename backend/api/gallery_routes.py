@@ -14,6 +14,14 @@ gallery_service = GalleryService()
 auth_service = AuthService()
 
 
+def _get_bool_arg(arg_name: str, default: bool = False) -> bool:
+    """解析布尔查询参数"""
+    value = request.args.get(arg_name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
+
+
 @gallery_bp.route("/")
 @login_required
 def folder_list():
@@ -86,6 +94,10 @@ def gallery_page(folder_name):
 
         # 获取排序参数，首次访问默认收益率排序
         sort_by = request.args.get("sort", "neu_ret")
+        dedupe_similar = _get_bool_arg("dedupe_similar", False) if sort_by == "neu_ret" else False
+        dedupe_task_id = request.args.get("dedupe_task_id") if dedupe_similar else None
+        dedupe_target_kept = request.args.get("dedupe_target_kept", type=int) if dedupe_similar else None
+        dedupe_continue = _get_bool_arg("dedupe_continue", False) if dedupe_similar else False
         # 首次加载只显示前20张图片，支持懒加载
         page = request.args.get("page", 1, type=int)
         per_page = request.args.get("per_page", 20, type=int)
@@ -94,12 +106,25 @@ def gallery_page(folder_name):
         if folder_info.get("has_subfolders", False) and sort_by == "neu_ret":
             # 如果是父文件夹且使用收益率排序，使用跨子文件夹收益率排序
             images = gallery_service.get_images_cross_folders_by_return(
-                folder_name, page=page, per_page=per_page
+                folder_name,
+                page=page,
+                per_page=per_page,
+                dedupe_similar=dedupe_similar,
+                dedupe_task_id=dedupe_task_id,
+                dedupe_target_kept=dedupe_target_kept,
+                dedupe_continue=dedupe_continue,
             )
         else:
             # 否则使用原有的单文件夹排序
             images = gallery_service.get_image_list(
-                folder_name, page=page, per_page=per_page, sort_by=sort_by
+                folder_name,
+                page=page,
+                per_page=per_page,
+                sort_by=sort_by,
+                dedupe_similar=dedupe_similar,
+                dedupe_task_id=dedupe_task_id,
+                dedupe_target_kept=dedupe_target_kept,
+                dedupe_continue=dedupe_continue,
             )
 
         return render_template(
@@ -107,6 +132,7 @@ def gallery_page(folder_name):
             folder_name=folder_name,
             folder_info=folder_info,
             images=images,
+            dedupe_similar=dedupe_similar,
         )
     except Exception as e:
         return (
@@ -123,6 +149,10 @@ def api_images(folder_name):
         page = request.args.get("page", 1, type=int)
         per_page = request.args.get("per_page", 20, type=int)
         sort_by = request.args.get("sort", "neu_ret")
+        dedupe_similar = _get_bool_arg("dedupe_similar", False) if sort_by == "neu_ret" else False
+        dedupe_task_id = request.args.get("dedupe_task_id") if dedupe_similar else None
+        dedupe_target_kept = request.args.get("dedupe_target_kept", type=int) if dedupe_similar else None
+        dedupe_continue = _get_bool_arg("dedupe_continue", False) if dedupe_similar else False
 
         # 检查是否是父文件夹（含有子文件夹）
         folder_info = gallery_service.get_folder_info(folder_name)
@@ -133,12 +163,25 @@ def api_images(folder_name):
         ):
             # 如果是父文件夹且使用收益率排序，使用跨子文件夹收益率排序
             images = gallery_service.get_images_cross_folders_by_return(
-                folder_name, page, per_page
+                folder_name,
+                page,
+                per_page,
+                dedupe_similar=dedupe_similar,
+                dedupe_task_id=dedupe_task_id,
+                dedupe_target_kept=dedupe_target_kept,
+                dedupe_continue=dedupe_continue,
             )
         else:
             # 否则使用原有的单文件夹排序
             images = gallery_service.get_image_list(
-                folder_name, page, per_page, sort_by
+                folder_name,
+                page,
+                per_page,
+                sort_by,
+                dedupe_similar=dedupe_similar,
+                dedupe_task_id=dedupe_task_id,
+                dedupe_target_kept=dedupe_target_kept,
+                dedupe_continue=dedupe_continue,
             )
 
         return jsonify(

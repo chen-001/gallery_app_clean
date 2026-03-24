@@ -7,6 +7,7 @@
 PROJECT_DIR="/home/chenzongwei/gallery_app/gallery_app_clean"
 PYTHON_PATH="/home/chenzongwei/.conda/envs/chenzongwei311/bin/python"
 START_SCRIPT="start.py"
+SCRIPT_PATH="$(realpath "$0")"
 SERVICE_NAME="gallery-app-clean.service"
 LOG_FILE="$PROJECT_DIR/logs/gallery.log"
 PID_FILE="$PROJECT_DIR/gallery.pid"
@@ -61,24 +62,56 @@ check_dependencies() {
     return 0
 }
 
+is_pid_active() {
+    local pid="$1"
+    if [ -z "$pid" ]; then
+        return 1
+    fi
+
+    if ! kill -0 "$pid" 2>/dev/null; then
+        return 1
+    fi
+
+    local stat=$(ps -o stat= -p "$pid" 2>/dev/null | tr -d '[:space:]')
+    if [ -z "$stat" ] || [[ "$stat" == Z* ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+launch_detached() {
+    local stdout_target="$1"
+    shift
+
+    if command -v setsid >/dev/null 2>&1; then
+        setsid "$@" >> "$stdout_target" 2>&1 < /dev/null &
+    else
+        nohup "$@" >> "$stdout_target" 2>&1 < /dev/null &
+    fi
+
+    echo $!
+}
+
 get_pid() {
     if [ -f "$PID_FILE" ]; then
         local pid=$(cat "$PID_FILE" 2>/dev/null)
-        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        if is_pid_active "$pid"; then
             echo "$pid"
             return 0
         else
             rm -f "$PID_FILE"
         fi
     fi
-    
-    # 备用方法：通过进程名查找
-    local pid=$(ps aux | grep "$START_SCRIPT" | grep -v grep | awk '{print $2}' | head -1)
+
+    # 备用方法：通过完整命令查找
+    local pid=$(pgrep -f "$PYTHON_PATH $PROJECT_DIR/$START_SCRIPT" | head -1)
     if [ -n "$pid" ]; then
+        echo "$pid" > "$PID_FILE"
         echo "$pid"
         return 0
     fi
-    
+
     return 1
 }
 
@@ -86,10 +119,9 @@ check_process() {
     local pid=$(get_pid)
     if [ -n "$pid" ]; then
         echo -e "${GREEN}Gallery App 重构版本正在运行 (PID: $pid)${NC}"
-        
-        # 显示监听端口
-        local port=$(netstat -tlnp 2>/dev/null | grep ":$pid " | grep -o ":[0-9]*" | head -1 | cut -c2-)
-        if [ -n "$port" ]; then
+
+        local port="${GALLERY_PORT:-$DEFAULT_PORT}"
+        if ss -ltn 2>/dev/null | grep -q ":$port "; then
             echo -e "${CYAN}监听端口: $port${NC}"
             echo -e "${CYAN}访问地址: http://localhost:$port${NC}"
         fi
@@ -101,43 +133,72 @@ check_process() {
 }
 
 start_app() {
+    mkdir -p "$(dirname "$LOG_FILE")"
+
     # 设置环境变量
     export GALLERY_HOST="${GALLERY_HOST:-$DEFAULT_HOST}"
     export GALLERY_PORT="${GALLERY_PORT:-$DEFAULT_PORT}"
     export GALLERY_DEBUG="${GALLERY_DEBUG:-$DEFAULT_DEBUG}"
     export GALLERY_IMAGES_ROOT="${GALLERY_IMAGES_ROOT:-$DEFAULT_IMAGES_ROOT}"
-    
+
+    local existing_pid=$(get_pid)
+    if [ -n "$existing_pid" ]; then
+        echo "$existing_pid" > "$PID_FILE"
+        return 0
+    fi
+
     # 启动应用
-    cd "$PROJECT_DIR"
-    nohup "$PYTHON_PATH" "$START_SCRIPT" > "$LOG_FILE" 2>&1 &
-    local pid=$!
-    
+    cd "$PROJECT_DIR" || return 1
+    local pid=$(launch_detached "$LOG_FILE" env \
+        GALLERY_HOST="$GALLERY_HOST" \
+        GALLERY_PORT="$GALLERY_PORT" \
+        GALLERY_DEBUG="$GALLERY_DEBUG" \
+        GALLERY_IMAGES_ROOT="$GALLERY_IMAGES_ROOT" \
+        "$PYTHON_PATH" "$PROJECT_DIR/$START_SCRIPT")
+
     # 保存PID
     echo "$pid" > "$PID_FILE"
-    
+
     return 0
 }
 
+wait_for_app_start() {
+    local port="${GALLERY_PORT:-$DEFAULT_PORT}"
+    local retries="${1:-15}"
+    local count=0
+
+    while [ $count -lt "$retries" ]; do
+        local pid=$(get_pid)
+        if [ -n "$pid" ] && ss -ltn 2>/dev/null | grep -q ":$port "; then
+            return 0
+        fi
+        sleep 1
+        count=$((count + 1))
+    done
+
+    return 1
+}
+
 daemon_process() {
-    echo -e "${BLUE}启动守护进程保活模式...${NC}"
-    
-    # 创建日志目录
     mkdir -p "$(dirname "$LOG_FILE")"
-    
+    echo "$$" > "$DAEMON_PID_FILE"
+    trap 'rm -f "$DAEMON_PID_FILE"; exit 0' INT TERM EXIT
+
+    echo -e "${BLUE}启动守护进程保活模式...${NC}"
+
     while true; do
         # 检查应用是否运行
         if ! check_process > /dev/null 2>&1; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - 检测到服务已停止，正在重启..." >> "$LOG_FILE"
             start_app
-            sleep 3
-            
-            if check_process > /dev/null 2>&1; then
+
+            if wait_for_app_start 15; then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - 服务重启成功" >> "$LOG_FILE"
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - 服务重启失败，等待下次尝试" >> "$LOG_FILE"
             fi
         fi
-        
+
         # 每5秒检查一次
         sleep 5
     done
@@ -154,7 +215,7 @@ start_daemon() {
     # 检查守护进程是否已运行
     if [ -f "$DAEMON_PID_FILE" ]; then
         local daemon_pid=$(cat "$DAEMON_PID_FILE" 2>/dev/null)
-        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 2>/dev/null; then
+        if is_pid_active "$daemon_pid"; then
             echo -e "${YELLOW}守护进程已在运行 (PID: $daemon_pid)${NC}"
             return 0
         else
@@ -174,15 +235,12 @@ start_daemon() {
     echo -e "  DEBUG: $GALLERY_DEBUG"
     echo -e "  IMAGES_ROOT: $GALLERY_IMAGES_ROOT"
     
-    # 启动守护进程
-    daemon_process &
-    local daemon_pid=$!
+    # 启动独立守护进程，避免父shell退出后后台函数被挂断
+    local daemon_pid=$(launch_detached /dev/null "$SCRIPT_PATH" daemon-loop)
     echo "$daemon_pid" > "$DAEMON_PID_FILE"
-    
+
     # 等待启动
-    sleep 3
-    
-    if check_process > /dev/null; then
+    if wait_for_app_start 20 && kill -0 "$daemon_pid" 2>/dev/null; then
         echo -e "${GREEN}✓ Gallery App 保活守护模式启动成功${NC}"
         echo -e "守护进程PID: ${CYAN}$daemon_pid${NC}"
         echo -e "访问地址: ${BLUE}http://$GALLERY_HOST:$GALLERY_PORT${NC}"
@@ -208,7 +266,7 @@ start_service() {
     # 检查守护进程是否已运行
     if [ -f "$DAEMON_PID_FILE" ]; then
         local daemon_pid=$(cat "$DAEMON_PID_FILE" 2>/dev/null)
-        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 2>/dev/null; then
+        if is_pid_active "$daemon_pid"; then
             echo -e "${YELLOW}保活服务已在运行 (守护进程PID: $daemon_pid)${NC}"
             check_process
             return 0
@@ -229,15 +287,12 @@ start_service() {
     echo -e "  DEBUG: $GALLERY_DEBUG"
     echo -e "  IMAGES_ROOT: $GALLERY_IMAGES_ROOT"
     
-    # 启动守护进程
-    daemon_process &
-    local daemon_pid=$!
+    # 启动独立守护进程，避免父shell退出后后台函数被挂断
+    local daemon_pid=$(launch_detached /dev/null "$SCRIPT_PATH" daemon-loop)
     echo "$daemon_pid" > "$DAEMON_PID_FILE"
-    
+
     # 等待启动
-    sleep 3
-    
-    if check_process > /dev/null; then
+    if wait_for_app_start 20 && kill -0 "$daemon_pid" 2>/dev/null; then
         echo -e "${GREEN}✓ Gallery App 保活服务启动成功${NC}"
         echo -e "守护进程PID: ${CYAN}$daemon_pid${NC}"
         echo -e "访问地址: ${BLUE}http://$GALLERY_HOST:$GALLERY_PORT${NC}"
@@ -259,14 +314,14 @@ stop_service() {
     # 停止守护进程
     if [ -f "$DAEMON_PID_FILE" ]; then
         local daemon_pid=$(cat "$DAEMON_PID_FILE" 2>/dev/null)
-        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 2>/dev/null; then
+        if is_pid_active "$daemon_pid"; then
             echo -e "${YELLOW}正在停止守护进程 (PID: $daemon_pid)...${NC}"
             kill "$daemon_pid" 2>/dev/null
             
             # 等待守护进程结束
             local count=0
             while [ $count -lt 5 ]; do
-                if ! kill -0 "$daemon_pid" 2>/dev/null; then
+                if ! is_pid_active "$daemon_pid"; then
                     break
                 fi
                 sleep 1
@@ -274,7 +329,7 @@ stop_service() {
             done
             
             # 如果仍在运行，强制结束
-            if kill -0 "$daemon_pid" 2>/dev/null; then
+            if is_pid_active "$daemon_pid"; then
                 kill -9 "$daemon_pid" 2>/dev/null
             fi
             
@@ -294,7 +349,7 @@ stop_service() {
         # 等待进程结束
         local count=0
         while [ $count -lt 10 ]; do
-            if ! kill -0 "$pid" 2>/dev/null; then
+            if ! is_pid_active "$pid"; then
                 break
             fi
             sleep 1
@@ -302,7 +357,7 @@ stop_service() {
         done
         
         # 如果仍在运行，强制结束
-        if kill -0 "$pid" 2>/dev/null; then
+        if is_pid_active "$pid"; then
             echo -e "${YELLOW}强制结束应用进程...${NC}"
             kill -9 "$pid" 2>/dev/null
             sleep 1
@@ -337,7 +392,7 @@ stop_direct() {
         # 等待进程结束
         local count=0
         while [ $count -lt 10 ]; do
-            if ! kill -0 "$pid" 2>/dev/null; then
+            if ! is_pid_active "$pid"; then
                 break
             fi
             sleep 1
@@ -345,7 +400,7 @@ stop_direct() {
         done
         
         # 如果仍在运行，强制结束
-        if kill -0 "$pid" 2>/dev/null; then
+        if is_pid_active "$pid"; then
             echo -e "${YELLOW}强制结束进程...${NC}"
             kill -9 "$pid" 2>/dev/null
             sleep 1
@@ -444,7 +499,7 @@ print_status() {
     # 检查守护进程状态
     if [ -f "$DAEMON_PID_FILE" ]; then
         local daemon_pid=$(cat "$DAEMON_PID_FILE" 2>/dev/null)
-        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 2>/dev/null; then
+        if is_pid_active "$daemon_pid"; then
             echo -e "${GREEN}守护进程正在运行 (PID: $daemon_pid)${NC}"
         else
             echo -e "${RED}守护进程未运行${NC}"
@@ -460,7 +515,7 @@ print_status() {
     
     # 检查端口占用
     local port="${GALLERY_PORT:-$DEFAULT_PORT}"
-    local port_status=$(netstat -tln 2>/dev/null | grep ":$port ")
+    local port_status=$(ss -ltn 2>/dev/null | grep ":$port ")
     if [ -n "$port_status" ]; then
         echo -e "端口 $port: ${GREEN}已监听${NC}"
     else
@@ -638,6 +693,9 @@ case "$1" in
     cleanup)
         print_header
         cleanup "$2"
+        ;;
+    daemon-loop)
+        daemon_process
         ;;
     help|--help|-h)
         show_help
