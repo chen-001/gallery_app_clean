@@ -104,3 +104,4 @@ docs/_build/
 .claude/
 .entire/
 .factory/
+config/data/folder_status.json

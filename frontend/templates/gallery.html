@@ -1121,6 +1121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDedupeTaskId = null;
     let dedupeStreamMode = false;
     let dedupeRenderedPaths = new Set();
+    let currentAbortController = null;
     let dedupeTargetKeptLimit = initialDedupeState && initialDedupeState.target_kept_limit
         ? Number(initialDedupeState.target_kept_limit)
         : 50;
@@ -1577,6 +1578,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function applySortFromServer(sortBy, filterType, sortOrder, searchTerm = '', options = {}) {
         if (!galleryGrid) return;
 
+        // 取消之前的请求（如果存在）
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+        currentAbortController = new AbortController();
+
         const previousSnapshot = captureGallerySnapshot();
         const preserveDedupeStream = Boolean(options.preserveDedupeStream);
         const preservingExistingResults = isDedupeActive(sortBy)
@@ -1626,7 +1633,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 使用AJAX获取第一页排序数据
-        fetch(requestUrl)
+        fetch(requestUrl, { signal: currentAbortController.signal })
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.images) {
@@ -1694,6 +1701,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
+                // 如果是请求被取消，不显示错误
+                if (error.name === 'AbortError') {
+                    console.log('请求被取消');
+                    return;
+                }
                 console.error('Error fetching sorted images:', error);
                 if (isDedupeActive(sortBy)) {
                     updateDedupeProgressPanel({
@@ -1722,6 +1734,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .finally(() => {
                 isLoading = false;
+                currentAbortController = null;
                 updateDedupeContinueButton({
                     can_continue: continueDedupeBtn && continueDedupeBtn.style.display !== 'none',
                     target_kept_limit: dedupeTargetKeptLimit,
@@ -3164,6 +3177,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCorrelationResult(record);
                 floatingCorrelationWindow.classList.remove('show');
             }
+        }
+    });
+
+    // 页面卸载时取消正在进行的请求，防止导航阻塞
+    window.addEventListener('beforeunload', () => {
+        if (currentAbortController) {
+            currentAbortController.abort();
         }
     });
 });
