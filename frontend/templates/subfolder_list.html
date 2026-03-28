@@ -2259,14 +2259,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         // 渲染 markdown 并替换内容
                         let renderedHTML;
                         try {
+                            // 提取 LaTeX 公式为占位符，防止 marked 破坏公式结构
+                            const mathPlaceholders = [];
+                            const saveMath = (match) => {
+                                mathPlaceholders.push(match);
+                                return `%%MATH_PH_${mathPlaceholders.length - 1}%%`;
+                            };
+                            let processedText = markdownText;
+                            // 先提取 display math ($$...$$)，支持多行
+                            processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (m) => saveMath(m));
+                            // 再提取 inline math ($...$)，排除 $$ 的情况
+                            processedText = processedText.replace(/(?<!\$)\$(?!\$)([^\$\n]+?)\$(?!\$)/g, (m) => saveMath(m));
+
                             const renderOptions = renderer ? { renderer: renderer } : {};
                             if (marked.parse) {
-                                renderedHTML = marked.parse(markdownText, renderOptions);
+                                renderedHTML = marked.parse(processedText, renderOptions);
                             } else if (typeof marked === 'function') {
-                                renderedHTML = marked(markdownText, renderOptions);
+                                renderedHTML = marked(processedText, renderOptions);
                             } else {
                                 throw new Error('marked function not available');
                             }
+                            // 恢复 LaTeX 公式（marked 可能将占位符包裹在 <p> 标签中）
+                            mathPlaceholders.forEach((math, i) => {
+                                renderedHTML = renderedHTML.replace(`<p>%%MATH_PH_${i}%%</p>`, math);
+                                renderedHTML = renderedHTML.replace(`%%MATH_PH_${i}%%`, math);
+                            });
                         } catch (parseError) {
                             console.error('Markdown parsing failed:', parseError);
                             // 简单后备方案
@@ -2707,10 +2724,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // 保存副本，因为 closeDescriptionModal 会清空 currentImageFolder 和 currentImageFilename
+        const savedFolder = currentImageFolder;
+        const savedFilename = currentImageFilename;
         const description = imageDescriptionTextarea.value.trim();
         
         // 发送保存请求
-        fetch(`/gallery/api/description/${currentImageFolder}/${currentImageFilename}`, {
+        fetch(`/gallery/api/description/${savedFolder}/${savedFilename}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2722,10 +2742,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // 直接更新 DOM 中的描述显示（自动保存和手动保存都生效）
+                updateDescribedImageDisplay(savedFolder, savedFilename, description);
                 if (!silent) {
                     closeDescriptionModal();
-                    // 刷新有描述的图片区域
-                    loadDescribedImages();
                 }
                 updateImageSaveStatus('已保存');
             } else {
@@ -2737,6 +2757,39 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             if (!silent) alert('保存时发生错误');
             updateImageSaveStatus('保存失败');
+        });
+    }
+    
+    // 更新页面中有描述图片的描述显示
+    function updateDescribedImageDisplay(folderName, filename, newDescription) {
+        const cards = document.querySelectorAll('.described-image-card');
+        cards.forEach(card => {
+            const editBtn = card.querySelector('.btn-edit-desc');
+            if (editBtn &&
+                editBtn.dataset.folder === folderName &&
+                editBtn.dataset.filename === filename) {
+                let descEl = card.querySelector('.described-image-description');
+                if (newDescription && newDescription.trim() !== '') {
+                    const escapedDesc = newDescription
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br>');
+                    if (descEl) {
+                        descEl.innerHTML = escapedDesc;
+                    } else {
+                        descEl = document.createElement('div');
+                        descEl.className = 'described-image-description';
+                        descEl.innerHTML = escapedDesc;
+                        const actionsEl = card.querySelector('.image-actions');
+                        if (actionsEl) {
+                            actionsEl.parentNode.insertBefore(descEl, actionsEl);
+                        }
+                    }
+                } else {
+                    if (descEl) descEl.remove();
+                }
+                editBtn.setAttribute('data-description', newDescription || '');
+            }
         });
     }
     
@@ -3464,7 +3517,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentFolder = '{{ folder_name }}';
         
         // 获取所有子文件夹的有描述图片
-        fetch(`/gallery/api/described-images/${currentFolder}`)
+        fetch(`/gallery/api/described-images/${currentFolder}`, { cache: 'no-store' })
             .then(response => response.json())
             .then(data => {
                 describedImagesLoading.style.display = 'none';

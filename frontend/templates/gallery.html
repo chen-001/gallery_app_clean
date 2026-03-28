@@ -94,7 +94,7 @@
                 <button id="toggleDedupeSimilar" class="btn btn-secondary" type="button">
                     <i class="fas fa-object-ungroup"></i> 去除高相关重复因子
                 </button>
-                <small id="dedupeHint" class="control-hint">仅收益率排序下可用，阈值 0.6</small>
+                <small id="dedupeHint" class="control-hint">仅收益率排序下可用，相关性绝对值阈值 0.6</small>
             </div>
             <div class="control-group">
                 <button id="applyFilters" class="btn btn-primary">
@@ -690,10 +690,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // 保存副本，因为 closeModal 会清空 currentFolder 和 currentFilename
+        const savedFolder = currentFolder;
+        const savedFilename = currentFilename;
         const description = descriptionTextarea.value.trim();
         
         // 发送保存请求
-        fetch(`/gallery/api/description/${currentFolder}/${currentFilename}`, {
+        fetch(`/gallery/api/description/${savedFolder}/${savedFilename}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -709,8 +712,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('描述已保存');
                     closeModal();
                 }
-                // 更新页面中对应图片的描述显示，而不重新加载整个页面
-                updateImageDescriptionDisplay(currentFolder, currentFilename, description);
+                // 使用保存的副本而不是可能已被清空的 currentFolder/currentFilename
+                updateImageDescriptionDisplay(savedFolder, savedFilename, description);
                 updateImageSaveStatus('已保存');
             } else {
                 if (!silent) alert('保存失败: ' + data.message);
@@ -1170,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (dedupeHint) {
             dedupeHint.textContent = enabled
-                ? (dedupeSimilar ? '当前只保留相对不同的高收益因子，阈值 0.6' : '仅收益率排序下可用，阈值 0.6')
+                ? (dedupeSimilar ? '当前只保留相关性绝对值小于 0.6 的高收益因子' : '仅收益率排序下可用，相关性绝对值阈值 0.6')
                 : '切回收益率排序后才可开启该筛选';
         }
     }
@@ -2644,14 +2647,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         // 渲染 markdown 并替换内容
                         let renderedHTML;
                         try {
+                            // 提取 LaTeX 公式为占位符，防止 marked 破坏公式结构
+                            const mathPlaceholders = [];
+                            const saveMath = (match) => {
+                                mathPlaceholders.push(match);
+                                return `%%MATH_PH_${mathPlaceholders.length - 1}%%`;
+                            };
+                            let processedText = markdownText;
+                            // 先提取 display math ($$...$$)，支持多行
+                            processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (m) => saveMath(m));
+                            // 再提取 inline math ($...$)，排除 $$ 的情况
+                            processedText = processedText.replace(/(?<!\$)\$(?!\$)([^\$\n]+?)\$(?!\$)/g, (m) => saveMath(m));
+
                             const renderOptions = renderer ? { renderer: renderer } : {};
                             if (marked.parse) {
-                                renderedHTML = marked.parse(markdownText, renderOptions);
+                                renderedHTML = marked.parse(processedText, renderOptions);
                             } else if (typeof marked === 'function') {
-                                renderedHTML = marked(markdownText, renderOptions);
+                                renderedHTML = marked(processedText, renderOptions);
                             } else {
                                 throw new Error('marked function not available');
                             }
+                            // 恢复 LaTeX 公式（marked 可能将占位符包裹在 <p> 标签中）
+                            mathPlaceholders.forEach((math, i) => {
+                                renderedHTML = renderedHTML.replace(`<p>%%MATH_PH_${i}%%</p>`, math);
+                                renderedHTML = renderedHTML.replace(`%%MATH_PH_${i}%%`, math);
+                            });
                         } catch (parseError) {
                             console.error('Markdown parsing failed:', parseError);
                             // 简单后备方案

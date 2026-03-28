@@ -25,6 +25,7 @@ DEDUPE_PROGRESS_DB_FILE = Path(__file__).resolve().parent.parent.parent / "confi
 MAX_DEDUPE_CACHE_ENTRIES = 50
 DEDUPE_BATCH_SIZE = 50
 DEDUPE_MAX_KEPT_FACTORS = 100
+DEDUPE_RULE_VERSION = "abs_corr_v1"
 
 logger = logging.getLogger(__name__)
 
@@ -593,7 +594,7 @@ class GalleryService:
         return Path(FACTOR_DATA_ROOT) / factor_version / f"{parquet_factor_name}.parquet"
 
     def _build_dedupe_cache_signature(self, images: List[Dict], threshold: float) -> str:
-        """基于当前候选因子集合和底层数据时间戳生成缓存签名"""
+        """基于当前候选因子集合、去重规则和底层数据时间戳生成缓存签名"""
         parquet_mtime_cache: Dict[Tuple[str, str], Optional[int]] = {}
         signature_items = []
 
@@ -619,6 +620,7 @@ class GalleryService:
             )
 
         payload = {
+            'rule_version': DEDUPE_RULE_VERSION,
             'threshold': threshold,
             'items': signature_items,
         }
@@ -1028,7 +1030,7 @@ class GalleryService:
         target_kept_limit: Optional[int] = None,
         continue_requested: bool = False,
     ) -> Tuple[List[Dict], Dict[str, object]]:
-        """按收益率从高到低贪心去除高相关的重复因子"""
+        """按收益率从高到低贪心去除高相关的重复因子，使用相关系数绝对值判重"""
         start_time = time.monotonic()
         conn: Optional[sqlite3.Connection] = None
         run_key: Optional[str] = None
@@ -1343,11 +1345,15 @@ class GalleryService:
                         )
                         saved_comparisons[prior_relative_path] = corr_value
 
-                    if corr_value is not None and (max_corr is None or corr_value > max_corr):
+                    corr_abs_value = abs(corr_value) if corr_value is not None else None
+
+                    if corr_value is not None and (
+                        max_corr is None or corr_abs_value > abs(max_corr)
+                    ):
                         max_corr = float(corr_value)
                         max_corr_with = prior_relative_path
 
-                    if corr_value is not None and corr_value > threshold:
+                    if corr_abs_value is not None and corr_abs_value > threshold:
                         should_hide = True
 
                 image_info['dedupe_compared_count'] = index - 1
