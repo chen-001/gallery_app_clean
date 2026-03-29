@@ -109,3 +109,5 @@ docs/_build/
 .entire/
 .factory/
 config/data/folder_status.json
+config/data/correlation_dedupe_cache.json
+config/data/folder_status.json
