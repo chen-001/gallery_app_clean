@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentView = 'grid';
 let currentSort = 'date';
 let currentOrder = 'desc';
+let currentStatusFilter = 'all';
+let folderStatusData = {};
 
 // 初始化文件夹列表
 function initFolderList() {
@@ -15,6 +17,7 @@ function initFolderList() {
     initSortFilters();
     initFolderCards();
     initFolderStatus();
+    initStatusFilterButtons();
     
     // 恢复用户偏好设置
     loadUserPreferences();
@@ -42,22 +45,38 @@ function initSearchFunction() {
 
 // 执行搜索
 function performSearch(query) {
-    const folderCards = document.querySelectorAll('.folder-card');
+    const folderGrid = document.getElementById('folderGrid');
+    if (!folderGrid) return;
+    
+    const folderCards = folderGrid.querySelectorAll('.folder-card');
     const emptyState = document.getElementById('emptyState');
     let visibleCount = 0;
     
     folderCards.forEach(card => {
         const folderName = card.dataset.name || '';
-        const isVisible = query === '' || folderName.includes(query.toLowerCase());
+        const folderNameExact = card.dataset.folderName || '';
         
-        card.style.display = isVisible ? 'flex' : 'none';
+        // 搜索词过滤
+        const matchesSearch = query === '' || folderName.includes(query.toLowerCase());
+        
+        // 状态过滤
+        let matchesStatus = true;
+        if (currentStatusFilter !== 'all') {
+            const folderStatus = folderStatusData[folderNameExact];
+            matchesStatus = folderStatus && folderStatus.status === currentStatusFilter;
+        }
+        
+        const isVisible = matchesSearch && matchesStatus;
+        
+        if (isVisible) {
+            card.style.cssText = 'display: flex !important; visibility: visible !important; position: relative !important;';
+            card.classList.remove('hidden');
+        } else {
+            card.style.cssText = 'display: none !important; visibility: hidden !important; position: absolute !important;';
+            card.classList.add('hidden');
+        }
         if (isVisible) visibleCount++;
     });
-    
-    // 显示/隐藏空状态
-    if (emptyState) {
-        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
     
     // 更新计数
     updateFolderCount(visibleCount);
@@ -284,6 +303,30 @@ async function refreshFolderList() {
     }
 }
 
+// 初始化状态过滤按钮
+function initStatusFilterButtons() {
+    const statusFilterButtons = document.querySelectorAll('.status-filter-btn');
+    
+    statusFilterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log('Status filter clicked:', this.dataset.status);
+            console.log('Folder status data:', folderStatusData);
+            
+            // 更新按钮状态
+            statusFilterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // 更新过滤状态
+            currentStatusFilter = this.dataset.status;
+            console.log('Current status filter:', currentStatusFilter);
+            
+            // 重新执行搜索过滤
+            const searchInput = document.getElementById('searchInput');
+            performSearch(searchInput ? searchInput.value.trim() : '');
+        });
+    });
+}
+
 // 导出到全局作用域
 window.folderList = {
     refreshFolderList,
@@ -302,6 +345,9 @@ async function initFolderStatus() {
         
         if (data.success && data.data) {
             applyFolderStatus(data.data);
+            // 保存状态数据供过滤使用
+            folderStatusData = data.data;
+            console.log('Folder status data loaded:', Object.keys(folderStatusData).length, 'folders');
         }
         
         // 绑定状态选择事件

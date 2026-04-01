@@ -47,6 +47,21 @@
         <div class="filter-stats">
             <span id="folderCount">{{ folder_count }}</span> 个文件夹
         </div>
+        <div class="filter-group">
+            <label>状态筛选:</label>
+            <div class="status-filter-buttons">
+                <button type="button" class="status-filter-btn active" data-status="all">全部</button>
+                <button type="button" class="status-filter-btn" data-status="researching">
+                    <i class="fas fa-flask"></i> 研究中
+                </button>
+                <button type="button" class="status-filter-btn" data-status="communicated">
+                    <i class="fas fa-comments"></i> 交流过
+                </button>
+                <button type="button" class="status-filter-btn" data-status="completed">
+                    <i class="fas fa-check-circle"></i> 已收尾
+                </button>
+            </div>
+        </div>
     </div>
     
     <div class="folder-grid" id="folderGrid">

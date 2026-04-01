@@ -155,6 +155,42 @@
     font-size: 0.9rem;
 }
 
+.status-filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.status-filter-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--lg-border-color);
+    border-radius: var(--lg-radius-md);
+    background: var(--lg-bg-interactive);
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-filter-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--lg-bg-hover);
+}
+
+.status-filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.status-filter-btn .fas,
+.status-filter-btn .far,
+.status-filter-btn .fab {
+    font-size: 0.8rem;
+}
+
 .folder-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
