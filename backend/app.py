@@ -45,6 +45,9 @@ def create_app(config_name=None):
     # 加载配置
     app.config.from_object(config[config_name])
 
+    # 禁止静态文件长期缓存
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
     # 初始化扩展
     CORS(app)
     socketio.init_app(app, async_mode='threading', cors_allowed_origins="*")

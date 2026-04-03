@@ -9,6 +9,38 @@ let currentSort = 'date';
 let currentOrder = 'desc';
 let currentStatusFilter = 'all';
 let folderStatusData = {};
+let statusDataLoaded = false;
+// 检测当前页面是否有状态筛选功能（只有folder_list页面有）
+const hasStatusFilter = () => document.querySelectorAll('.status-filter-btn').length > 0;
+
+// 从URL读取筛选状态
+function getStatusFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('status_filter') || null;
+}
+
+// 更新URL参数（不刷新页面）
+function updateURL(status) {
+    const url = new URL(window.location);
+    if (status && status !== 'all') {
+        url.searchParams.set('status_filter', status);
+    } else {
+        url.searchParams.delete('status_filter');
+    }
+    window.history.replaceState({}, '', url);
+}
+
+// 应用筛选状态到UI和执行搜索
+function applyStatusFilter(status) {
+    currentStatusFilter = status;
+    const btn = document.querySelector(`.status-filter-btn[data-status="${status}"]`);
+    if (btn) {
+        document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    const searchInput = document.getElementById('searchInput');
+    performSearch(searchInput ? searchInput.value.trim() : '');
+}
 
 // 初始化文件夹列表
 function initFolderList() {
@@ -21,6 +53,24 @@ function initFolderList() {
     
     // 恢复用户偏好设置
     loadUserPreferences();
+    
+    // 监听浏览器前进/后退
+    window.addEventListener('popstate', function() {
+        const urlStatus = getStatusFromURL() || 'all';
+        if (statusDataLoaded) {
+            applyStatusFilter(urlStatus);
+        }
+    });
+    
+    // 处理bfcache恢复（浏览器返回时DOMContentLoaded不会重新触发）
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            const urlStatus = getStatusFromURL() || currentStatusFilter;
+            if (urlStatus && urlStatus !== 'all' && statusDataLoaded) {
+                applyStatusFilter(urlStatus);
+            }
+        }
+    });
 }
 
 // 初始化搜索功能
@@ -59,9 +109,9 @@ function performSearch(query) {
         // 搜索词过滤
         const matchesSearch = query === '' || folderName.includes(query.toLowerCase());
         
-        // 状态过滤
+        // 状态过滤（仅在有状态筛选按钮的页面生效）
         let matchesStatus = true;
-        if (currentStatusFilter !== 'all') {
+        if (currentStatusFilter !== 'all' && hasStatusFilter()) {
             const folderStatus = folderStatusData[folderNameExact];
             matchesStatus = folderStatus && folderStatus.status === currentStatusFilter;
         }
@@ -221,7 +271,8 @@ function saveUserPreferences() {
     const preferences = {
         view: currentView,
         sort: currentSort,
-        order: currentOrder
+        order: currentOrder,
+        statusFilter: currentStatusFilter
     };
     
     try {
@@ -229,39 +280,53 @@ function saveUserPreferences() {
     } catch (error) {
         console.warn('无法保存用户偏好设置:', error);
     }
+    
+    // 同步更新URL
+    updateURL(currentStatusFilter);
 }
 
 // 加载用户偏好设置
 function loadUserPreferences() {
     try {
         const saved = localStorage.getItem('folderListPreferences');
-        if (saved) {
-            const preferences = JSON.parse(saved);
-            
-            // 恢复视图模式
-            if (preferences.view) {
-                switchView(preferences.view);
+        const preferences = saved ? JSON.parse(saved) : {};
+        
+        // 先读取并恢复状态筛选（仅在有状态筛选按钮的页面生效）
+        const urlStatus = getStatusFromURL();
+        const savedStatus = preferences.statusFilter || 'all';
+        const targetStatus = hasStatusFilter() ? (urlStatus || savedStatus) : 'all';
+        currentStatusFilter = targetStatus;
+        
+        // 恢复视图模式
+        if (preferences.view) {
+            switchView(preferences.view);
+        }
+        
+        // 恢复排序设置
+        if (preferences.sort) {
+            currentSort = preferences.sort;
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.value = currentSort;
             }
-            
-            // 恢复排序设置
-            if (preferences.sort) {
-                currentSort = preferences.sort;
-                const sortSelect = document.getElementById('sortSelect');
-                if (sortSelect) {
-                    sortSelect.value = currentSort;
-                }
+        }
+        
+        if (preferences.order) {
+            currentOrder = preferences.order;
+            const orderSelect = document.getElementById('orderSelect');
+            if (orderSelect) {
+                orderSelect.value = currentOrder;
             }
-            
-            if (preferences.order) {
-                currentOrder = preferences.order;
-                const orderSelect = document.getElementById('orderSelect');
-                if (orderSelect) {
-                    orderSelect.value = currentOrder;
-                }
-            }
-            
-            // 应用排序
-            sortFolders();
+        }
+        
+        // 应用排序
+        sortFolders();
+
+        // 应用状态筛选
+        if (targetStatus && targetStatus !== 'all' && statusDataLoaded) {
+            applyStatusFilter(targetStatus);
+        } else if (targetStatus && targetStatus !== 'all') {
+            window.pendingStatusFilter = targetStatus;
         }
     } catch (error) {
         console.warn('无法加载用户偏好设置:', error);
@@ -309,16 +374,15 @@ function initStatusFilterButtons() {
     
     statusFilterButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            console.log('Status filter clicked:', this.dataset.status);
-            console.log('Folder status data:', folderStatusData);
-            
             // 更新按钮状态
             statusFilterButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
             // 更新过滤状态
             currentStatusFilter = this.dataset.status;
-            console.log('Current status filter:', currentStatusFilter);
+
+            // 保存用户偏好（同时更新URL和localStorage）
+            saveUserPreferences();
             
             // 重新执行搜索过滤
             const searchInput = document.getElementById('searchInput');
@@ -347,7 +411,15 @@ async function initFolderStatus() {
             applyFolderStatus(data.data);
             // 保存状态数据供过滤使用
             folderStatusData = data.data;
+            statusDataLoaded = true;
             console.log('Folder status data loaded:', Object.keys(folderStatusData).length, 'folders');
+
+            // 数据加载完成后，应用待处理的筛选状态
+            const pendingStatus = window.pendingStatusFilter;
+            if (pendingStatus && pendingStatus !== 'all') {
+                applyStatusFilter(pendingStatus);
+                delete window.pendingStatusFilter;
+            }
         }
         
         // 绑定状态选择事件
