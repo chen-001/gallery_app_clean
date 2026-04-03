@@ -1,0 +1,42 @@
+Implement the following plan:
+
+# 状态筛选标签持久化（第二轮修复）
+
+## Context
+上一轮已对 `folder_list.js` 做了正确的代码改动（保存/恢复 `statusFilter`），但用户反馈返回后仍然没有保持筛选状态。
+
+**根因分析：浏览器缓存了旧版 JS 文件。**
+
+`folder_list.html` 中引入 JS 的方式是：
+```html
+<script src="{{ url_for('static', filename='js/folder_list.js') }}"></script>
+```
+没有版本号或哈希参数，浏览器缓存了修改前的旧文件，导致代码改动完全没有被加载。
+
+## 修改方案
+
+### 文件：`frontend/templates/folder_list.html`（第 145 行）
+
+给 JS 引入添加版本号参数，破坏浏览器缓存：
+
+```html
+<script src="{{ url_for('static', filename='js/folder_list.js') }}?v=20260403"></script>
+```
+
+同时检查 `subfolder_list.html` 是否也引用了同一个 JS 文件（搜索发现第 2123 行也有引用），同样添加版本号。
+
+### 文件：`backend/app.py`
+
+在 Flask 配置中设置 `SEND_FILE_MAX_AGE_DEFAULT = 0`（开发环境）或较小值，避免静态文件被长期缓存。
+
+## 验证方式
+1. 重启服务
+2. 在浏览器中强制刷新（Ctrl+Shift+R）确认加载新 JS
+3. 选择筛选标签 → 进入文件夹 → 返回 → 确认筛选保持
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/chenzongwei/.claude/projects/-home-chenzongwei-gallery-app-gallery-app-clean/1e8d434f-be61-46c0-b597-e3590fad10b9.jsonl
+
+---
+
+还是不行，现在我们讨论的是什么问题，你给我写个提示词，我让其他的AI修复
