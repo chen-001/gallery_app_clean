@@ -1,0 +1,81 @@
+Implement the following plan:
+
+# 状态筛选标签持久化
+
+## Context
+用户在文件夹列表页选择筛选标签（研究中/交流过/已收尾）后，点击文件夹进入详情，再按浏览器返回键回到首页时，筛选状态丢失恢复为"全部"。原因是 `currentStatusFilter` 没有像视图模式、排序方式那样持久化到 localStorage。
+
+## 修改文件
+`/home/chenzongwei/gallery_app/gallery_app_clean/frontend/static/js/folder_list.js`
+
+## 具体改动
+
+### 1. `saveUserPreferences()`（第 220-232 行）
+将 `currentStatusFilter` 加入 preferences 对象：
+```javascript
+const preferences = {
+    view: currentView,
+    sort: currentSort,
+    order: currentOrder,
+    statusFilter: currentStatusFilter
+};
+```
+
+### 2. `loadUserPreferences()`（第 235-269 行）
+在恢复排序设置后，增加恢复状态筛选逻辑：
+```javascript
+if (preferences.statusFilter && preferences.statusFilter !== 'all') {
+    currentStatusFilter = preferences.statusFilter;
+    // 设置对应按钮为 active
+    const btn = document.querySelector(`.status-filter-btn[data-status="${preferences.statusFilter}"]`);
+    if (btn) {
+        document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    // 重新执行搜索过滤以应用状态筛选
+    const searchInput = document.getElementById('searchInput');
+    performSearch(searchInput ? searchInput.value.trim() : '');
+}
+```
+
+### 3. `initStatusFilterButtons()`（第 306-328 行）
+在点击事件中调用 `saveUserPreferences()`：
+```javascript
+currentStatusFilter = this.dataset.status;
+saveUserPreferences();  // 新增
+```
+
+### 4. 时序处理
+`initFolderStatus()` 是异步加载文件夹状态数据的，而 `loadUserPreferences()` 在它之后同步调用。需要在 `initFolderStatus()` 数据加载完成后，再次检查并应用已保存的状态筛选：
+```javascript
+// 在 initFolderStatus() 的数据加载成功后添加：
+const saved = JSON.parse(localStorage.getItem('folderListPreferences') || '{}');
+if (saved.statusFilter && saved.statusFilter !== 'all') {
+    currentStatusFilter = saved.statusFilter;
+    const btn = document.querySelector(`.status-filter-btn[data-status="${saved.statusFilter}"]`);
+    if (btn) {
+        document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    const searchInput = document.getElementById('searchInput');
+    performSearch(searchInput ? searchInput.value.trim() : '');
+}
+```
+
+## 验证方式
+1. 重启服务 `./gallery_service_clean.sh restart`
+2. 在首页选择一个筛选标签（如"研究中"）
+3. 点击某个文件夹进入
+4. 按浏览器返回键
+5. 确认筛选标签仍然保持"研究中"状态，文件夹列表仍被过滤
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/chenzongwei/.claude/projects/-home-chenzongwei-gallery-app-gallery-app-clean/c57c9b62-02a9-4849-bafc-680922861737.jsonl
+
+---
+
+我看还是没有变化，返回后依然没有保持筛选的状态
+
+---
+
+[Request interrupted by user for tool use]
